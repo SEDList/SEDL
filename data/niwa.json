@@ -1,0 +1,19 @@
+{
+  "name": "niwa",
+  "speed": "1.4x",
+  "creator": "Teno",
+  "verifier": "Ekinosta",
+  "levelId": "87425029",
+  "youtube": "https://www.youtube.com/watch?v=q-PwtA0jU5s",
+  "demo": false,
+  "records": [
+    {
+      "player": "HE7VEN",
+      "video": "https://www.youtube.com/watch?v=PZmUGtn09xY"
+    },
+    {
+      "player": "구아이",
+      "video": "https://www.youtube.com/watch?v=Dr_h8lVjpdo"
+    }
+  ]
+}
