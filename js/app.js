@@ -122,9 +122,12 @@ async function loadLevels() {
     if (!Array.isArray(manifest)) throw new Error('Manifest must be an array');
     const results = await Promise.all(manifest.slice(0, 25).map(async (filename, index) => {
       // Accept filenames only, not paths or URLs.
-      if (typeof filename !== 'string' || !/^[\w.-]+\.json$/i.test(filename) || filename.startsWith('.')) throw new Error(`Invalid filename at rank ${index + 1}`);
-      const levelResponse = await fetch(`data/levels/${encodeURIComponent(filename)}`);
-      if (!levelResponse.ok) throw new Error(`${filename} returned ${levelResponse.status}`);
+      if (typeof filename !== 'string' || !/^[\w-]+(?:\.json)?$/i.test(filename)) throw new Error(`Invalid filename at rank ${index + 1}`);
+      const jsonFilename = /\.json$/i.test(filename) ? filename : `${filename}.json`;
+      let levelResponse = await fetch(`data/${encodeURIComponent(jsonFilename)}`);
+      // Also support the data/levels layout used by earlier versions.
+      if (levelResponse.status === 404) levelResponse = await fetch(`data/levels/${encodeURIComponent(jsonFilename)}`);
+      if (!levelResponse.ok) throw new Error(`${jsonFilename} returned ${levelResponse.status}`);
       const level = await levelResponse.json();
       if (!level || typeof level !== 'object' || Array.isArray(level) || !level.name) throw new Error(`${filename} has no level name`);
       return { rank: index + 1, name: String(level.name), speed: String(level.speed || 'Speed TBD'), creator: String(level.creator || 'Unknown'), verifier: String(level.verifier || ''), levelId: String(level.levelId || ''), youtube: String(level.youtube || ''), demo: level.demo === true, records: Array.isArray(level.records) ? level.records.filter(record => record && typeof record === 'object' && record.player).map(record => ({ player: String(record.player), video: String(record.video || '') })) : [] };

@@ -1,6 +1,6 @@
 # SEDL — Sped-Up Extreme Demon List
 
-A static, responsive community ranking for the top 25 sped-up Geometry Dash Extreme Demons. No framework, build command, or backend is required. The list is currently empty: add real level data before publishing rankings. The rules are a starter template that list staff must finalize.
+A static, responsive community ranking for the top 25 sped-up Geometry Dash Extreme Demons. No framework, build command, or backend is required. The included rankings and records are loaded from the repository’s data folder. The rules are a starter template that list staff must finalize.
 
 ## Deploy to Cloudflare Pages
 
@@ -13,7 +13,7 @@ Cloudflare serves the files directly. To preview locally, run `python3 -m http.s
 
 ## Manage the top 25
 
-`data/_list.json` is an ordered JSON array of filenames in `data/levels/`. The first filename is rank #1, the second is #2, and so on. Add, remove, or reorder filenames to update the list. The site displays **only the first 25 entries**; only those entries contribute to the leaderboard. Every displayed filename must refer to a valid JSON file in that folder. An empty array (`[]`) produces an empty list.
+`data/_list.json` is an ordered JSON array of level names or filenames in `data/`. For example, `"trueffet"` loads `data/trueffet.json` (the `.json` suffix is optional). The first entry is rank #1, the second is #2, and so on. Add, remove, or reorder filenames to update the list. The site displays **only the first 25 entries**; only those entries contribute to the leaderboard. Every displayed entry must refer to a valid JSON file in that folder. Files in `data/levels/` are also supported as a fallback. An empty array (`[]`) produces an empty list.
 
 Each level file follows this format (replace all example values with actual data):
 
