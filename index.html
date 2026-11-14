@@ -20,42 +20,50 @@
         <a href="#leaderboard" data-tab="leaderboard" class="nav-link">Leaderboard</a>
         <a href="#rules" data-tab="rules" class="nav-link">Rules</a>
       </nav>
+      <span class="header-caption">COMMUNITY RANKINGS <span> / </span> GD</span>
       <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42m0-14.14-1.42 1.42M6.35 17.65l-1.42 1.42"/></svg><svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5 8.5 8.5 0 1 0 20.5 14.4Z"/></svg></button>
     </div>
   </header>
   <main class="shell">
     <section class="intro">
-      <p class="eyebrow">GEOMETRY DASH COMMUNITY</p>
-      <h1>Sped-Up Extreme Demon List</h1>
-      <p>A ranking of the top 25 sped-up Extreme Demons and the players who complete them.</p>
+      <div class="intro-copy">
+        <p class="eyebrow"><span class="status-dot"></span> AN INDEPENDENT GEOMETRY DASH LIST</p>
+        <h1>Extreme demons.<br><span>Higher speeds.</span></h1>
+        <p>The community ranking for sped-up Extreme Demons. Explore the list, watch the runs, and see who’s at the top.</p>
+      </div>
+      <div class="intro-stats" aria-label="List overview">
+        <div><span>RANKED LEVELS</span><strong id="overview-levels">—</strong><small>Top 25</small></div>
+        <div><span>RANKED PLAYERS</span><strong id="overview-players">—</strong><small>On the leaderboard</small></div>
+        <div class="intro-stats-mark" aria-hidden="true">↗</div>
+      </div>
     </section>
     <div class="demo-notice" id="demo-notice" hidden><span><strong>Sample data.</strong> Some entries are marked as examples.</span></div>
     <section id="view-list" class="view" aria-labelledby="list-heading">
-      <div class="section-heading"><div><h2 id="list-heading">The list</h2><p>Browse the rankings and select a level for details.</p></div><div class="list-count"><strong id="level-count">0</strong><span> / 25 levels</span></div></div>
+      <div class="section-heading"><div><p class="section-overline">01 / RANKINGS</p><h2 id="list-heading">The list<span class="accent-period">.</span></h2><p>The top 25, in order of difficulty.</p></div><div class="list-count"><span class="count-dot"></span><strong id="level-count">0</strong><span> / 25 levels</span></div></div>
       <div class="list-layout">
         <aside class="level-sidebar" aria-label="Ranked levels">
-          <div class="sidebar-top"><div class="panel-label">Rankings <span id="sidebar-count">0</span></div><label class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><span class="sr-only">Search levels</span><input id="search" type="search" placeholder="Search levels or players" autocomplete="off"><span class="search-shortcut">/</span></label></div>
+          <div class="sidebar-top"><div class="sidebar-title"><div class="panel-label">All levels <span id="sidebar-count">0</span></div><span class="sidebar-hint">SELECT A LEVEL</span></div><label class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><span class="sr-only">Search levels</span><input id="search" type="search" placeholder="Search levels or players" autocomplete="off"><span class="search-shortcut">/</span></label></div>
           <div class="level-list" id="level-list" aria-live="polite"><div class="empty-state">Loading levels…</div></div>
         </aside>
         <div id="level-detail" class="detail-panel" aria-live="polite"><div class="empty-state">Loading level details…</div></div>
       </div>
     </section>
     <section id="view-leaderboard" class="view" aria-labelledby="leaderboard-heading" hidden>
-      <div class="section-heading"><div><h2 id="leaderboard-heading">Leaderboard</h2><p>Players ranked by the points earned from their completions.</p></div><div class="list-count"><strong id="player-count">0</strong><span> players</span></div></div>
-      <div class="leaderboard-panel"><div class="table-heading"><div><span class="panel-label">Standings</span><p>Select a player to see their completed levels.</p></div><span class="formula-tag">Points = 1000 × e<sup>−0.05 × (rank − 1)</sup></span></div><div class="table-scroll"><table class="standings-table"><thead><tr><th>Rank</th><th>Player</th><th>Completions</th><th>Points</th><th><span class="sr-only">View player</span></th></tr></thead><tbody id="leaderboard-body"></tbody></table></div></div>
+      <div class="section-heading"><div><p class="section-overline">02 / STANDINGS</p><h2 id="leaderboard-heading">Leaderboard<span class="accent-period">.</span></h2><p>Players ranked by the points earned from their completions.</p></div><div class="list-count"><strong id="player-count">0</strong><span> players</span></div></div>
+      <div class="leaderboard-panel"><div class="table-heading"><div><span class="panel-label">Player standings</span><p>Select a player to see their completed levels.</p></div><label class="search-box player-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><span class="sr-only">Search players</span><input id="player-search" type="search" placeholder="Search players" autocomplete="off"></label></div><div class="table-scroll"><table class="standings-table"><thead><tr><th>Rank</th><th>Player</th><th>Completions</th><th>Points</th><th><span class="sr-only">View player</span></th></tr></thead><tbody id="leaderboard-body"></tbody></table></div><div class="leaderboard-footer">Points per level = 1000 × e<sup>−0.05 × (rank − 1)</sup></div></div>
     </section>
     <section id="view-rules" class="view" aria-labelledby="rules-heading" hidden>
-      <div class="section-heading"><div><h2 id="rules-heading">Rules &amp; guidelines</h2><p>Information for players submitting a level or record.</p></div></div>
+      <div class="section-heading"><div><p class="section-overline">03 / INFORMATION</p><h2 id="rules-heading">Rules &amp; guidelines<span class="accent-period">.</span></h2><p>Information for players submitting a level or record.</p></div></div>
       <div class="rules-intro"><div><strong>Rules are not finalized</strong><p>These are starter guidelines. List staff should publish the exact minimum speed, allowed increments, and submission process before accepting records.</p></div></div>
       <div class="rules-grid">
-        <article class="rule-card"><h3>Speed requirements</h3><p>Submissions must be completed above the original level's intended speed. The minimum multiplier and permitted increments are to be determined by list staff. Include the exact multiplier with every submission.</p></article>
-        <article class="rule-card"><h3>Verification</h3><p>The verifier is the first player to complete the submitted version at its listed speed under the list's rules. A verifier's completion counts toward their leaderboard points.</p></article>
-        <article class="rule-card"><h3>MegaHack &amp; timewarp</h3><p>Disclose the tools and settings used in your run, including MegaHack and any timewarp or speed-modifying features. List staff must define which versions, settings, and modifications are permitted.</p></article>
-        <article class="rule-card"><h3>Raw footage</h3><p>Provide unedited raw footage of the complete run, including the level and speed settings, along with a publicly accessible video. Additional evidence may be requested by list staff.</p></article>
+        <article class="rule-card"><span class="rule-number">01</span><h3>Speed requirements</h3><p>Submissions must be completed above the original level's intended speed. The minimum multiplier and permitted increments are to be determined by list staff. Include the exact multiplier with every submission.</p></article>
+        <article class="rule-card"><span class="rule-number">02</span><h3>Verification</h3><p>The verifier is the first player to complete the submitted version at its listed speed under the list's rules. A verifier's completion counts toward their leaderboard points.</p></article>
+        <article class="rule-card"><span class="rule-number">03</span><h3>MegaHack &amp; timewarp</h3><p>Disclose the tools and settings used in your run, including MegaHack and any timewarp or speed-modifying features. List staff must define which versions, settings, and modifications are permitted.</p></article>
+        <article class="rule-card"><span class="rule-number">04</span><h3>Raw footage</h3><p>Provide unedited raw footage of the complete run, including the level and speed settings, along with a publicly accessible video. Additional evidence may be requested by list staff.</p></article>
       </div>
     </section>
   </main>
-  <footer class="site-footer shell"><span>SEDL <span class="footer-separator">/</span> Sped-Up Extreme Demon List</span><span>Not affiliated with RobTop Games.</span></footer>
+  <footer class="site-footer shell"><div><strong>SEDL</strong><span>Sped-Up Extreme Demon List</span></div><span>Community-run. Not affiliated with RobTop Games.</span></footer>
   <dialog id="player-dialog" class="player-dialog" aria-labelledby="dialog-title"><div class="modal-header"><div><p class="modal-label">PLAYER COMPLETIONS</p><h2 id="dialog-title"></h2><p id="dialog-summary"></p></div><button class="icon-button" id="close-dialog" aria-label="Close player details">✕</button></div><div id="player-completions" class="player-completions"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>

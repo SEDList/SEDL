@@ -61,24 +61,28 @@ function buildLeaderboard() {
       if (!players.has(key)) players.set(key, { name, completions: [], points: 0 });
       const player = players.get(key);
       player.completions.push(level);
-      player.points += pointsForRank(level.rank);
+      player.points = Math.round((player.points + pointsForRank(level.rank)) * 100) / 100;
     });
   });
   state.players = [...players.values()].sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
 }
 function renderLeaderboard() {
   $('#player-count').textContent = String(state.players.length);
-  $('#leaderboard-body').innerHTML = state.players.length ? state.players.map((player, index) => `<tr data-player="${index}" tabindex="0" role="button" aria-label="View ${escapeHTML(player.name)}'s completions"><td>${rankLabel(index + 1)}</td><td>${escapeHTML(player.name)}</td><td>${player.completions.length}</td><td>${formatPoints(player.points)} <span class="detail-label">PTS</span></td><td>↗</td></tr>`).join('') : '<tr><td colspan="5" class="empty-state">No player completions yet.</td></tr>';
+  const query = $('#player-search').value.trim().toLocaleLowerCase();
+  const rows = state.players.map((player, index) => ({ player, index })).filter(({ player }) => player.name.toLocaleLowerCase().includes(query));
+  $('#leaderboard-body').innerHTML = rows.length ? rows.map(({ player, index }) => `<tr><td><span class="standing-rank ${index < 3 ? 'top-rank' : ''}">${rankLabel(index + 1)}</span></td><td><button type="button" class="player-button" data-player="${index}" aria-label="View ${escapeHTML(player.name)}'s completions"><span class="player-avatar" aria-hidden="true">${escapeHTML([...player.name][0].toUpperCase())}</span>${escapeHTML(player.name)} <span class="player-arrow" aria-hidden="true">↗</span></button></td><td>${player.completions.length}</td><td class="standing-points">${formatPoints(player.points)} <span class="detail-label">PTS</span></td><td></td></tr>`).join('') : `<tr><td colspan="5" class="empty-state">${state.players.length ? 'No players match your search.' : 'No player completions yet.'}</td></tr>`;
 }
+$('#player-search').addEventListener('input', renderLeaderboard);
 function openPlayer(index) {
   const player = state.players[index]; if (!player) return;
   $('#dialog-title').textContent = player.name;
   $('#dialog-summary').textContent = `${player.completions.length} completed ${player.completions.length === 1 ? 'level' : 'levels'} · ${formatPoints(player.points)} points`;
-  $('#player-completions').innerHTML = player.completions.map(level => `<div class="completion-row"><span class="detail-rank">${rankLabel(level.rank)}</span><span class="completion-name">${escapeHTML(level.name)} <span class="speed-badge">${escapeHTML(level.speed)}</span></span><span class="completion-points">${formatPoints(pointsForRank(level.rank))} PTS</span></div>`).join('');
+  $('#player-completions').innerHTML = player.completions.map(level => `<button class="completion-row" type="button" data-level-rank="${level.rank}" aria-label="View ${escapeHTML(level.name)} on the list"><span class="detail-rank">${rankLabel(level.rank)}</span><span class="completion-name">${escapeHTML(level.name)} <span class="speed-badge">${escapeHTML(level.speed)}</span></span><span class="completion-points">${formatPoints(pointsForRank(level.rank))} PTS</span><span aria-hidden="true">↗</span></button>`).join('');
   $('#player-dialog').showModal();
 }
 $('#leaderboard-body').addEventListener('click', event => { const row = event.target.closest('[data-player]'); if (row) openPlayer(Number(row.dataset.player)); });
-$('#leaderboard-body').addEventListener('keydown', event => { const row = event.target.closest('[data-player]'); if (row && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); openPlayer(Number(row.dataset.player)); } });
+
+$('#player-completions').addEventListener('click', event => { const button = event.target.closest('[data-level-rank]'); if (!button) return; state.selected = Number(button.dataset.levelRank); $('#search').value = ''; $('#player-dialog').close(); location.hash = 'list'; navigate(); renderList(); if (window.matchMedia('(max-width: 750px)').matches) $('#level-detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('#close-dialog').addEventListener('click', () => $('#player-dialog').close());
 $('#player-dialog').addEventListener('click', event => { if (event.target === $('#player-dialog')) $('#player-dialog').close(); });
 
@@ -89,22 +93,27 @@ function filteredLevels() {
 function renderList() {
   const filtered = filteredLevels();
   $('#sidebar-count').textContent = filtered.length;
-  $('#level-list').innerHTML = filtered.length ? filtered.map(level => `<button type="button" class="level-item ${state.selected === level.rank ? 'active' : ''}" data-rank="${level.rank}" ${state.selected === level.rank ? 'aria-current="true"' : ''}><span class="level-rank">${rankLabel(level.rank)}</span><span class="level-info"><span class="level-name">${escapeHTML(level.name)} <span class="speed-badge">${escapeHTML(level.speed)}</span></span><span class="level-creator">by ${escapeHTML(level.creator)}</span></span><span class="level-arrow">↗</span></button>`).join('') : `<div class="empty-state">${state.levels.length ? 'No levels match your search.' : 'No levels have been added yet.'}</div>`;
   if (!filtered.some(level => level.rank === state.selected)) state.selected = filtered.length ? filtered[0].rank : null;
-  // Update selection after filtering without rebuilding the list again.
-  document.querySelectorAll('.level-item').forEach(item => { const active = Number(item.dataset.rank) === state.selected; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'true'); else item.removeAttribute('aria-current'); });
+  $('#level-list').innerHTML = filtered.length ? filtered.map(level => {
+    const video = youtubeId(level.youtube);
+    const thumb = video ? `<img src="https://i.ytimg.com/vi/${video}/default.jpg" loading="lazy" alt="">` : '';
+    return `<button type="button" class="level-item ${state.selected === level.rank ? 'active' : ''}" data-rank="${level.rank}" ${state.selected === level.rank ? 'aria-current="true"' : ''}><span class="level-rank">${String(level.rank).padStart(2, '0')}</span><span class="level-thumb">${thumb}</span><span class="level-info"><span class="level-name">${escapeHTML(level.name)}</span><span class="level-creator">${escapeHTML(level.creator)}</span></span><span class="list-speed">${escapeHTML(level.speed)}</span></button>`;
+  }).join('') : `<div class="empty-state">${state.levels.length ? 'No levels match your search.' : 'No levels have been added yet.'}</div>`;
   renderDetail();
 }
 function renderDetail() {
   const level = state.levels.find(item => item.rank === state.selected);
-  if (!level) { $('#level-detail').innerHTML = `<div class="empty-state empty-detail">${state.levels.length ? 'Select a level to see its details.' : 'Level details will appear here once rankings are added.'}</div>`; return; }
+  if (!level) { delete $('#level-detail').dataset.renderedRank; $('#level-detail').innerHTML = `<div class="empty-state empty-detail">${state.levels.length ? 'Select a level to see its details.' : 'Level details will appear here once rankings are added.'}</div>`; return; }
+  if ($('#level-detail').dataset.renderedRank === String(level.rank)) return;
+  $('#level-detail').dataset.renderedRank = String(level.rank);
   const id = youtubeId(level.youtube);
   const video = id ? `<iframe src="https://www.youtube-nocookie.com/embed/${id}" title="${escapeHTML(level.name)} verification video" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>` : '<div class="video-placeholder"><div class="video-emblem">SEDL / PLAY</div><span class="video-label">Verification video not provided</span><span class="video-corner">// AWAITING FOOTAGE</span></div>';
-  const records = [{ player: level.verifier, video: level.youtube, verifier: true }, ...level.records.filter(record => String(record.player).toLocaleLowerCase() !== level.verifier.toLocaleLowerCase())];
+  const seenRecords = new Set();
+  const records = [{ player: level.verifier, video: level.youtube, verifier: true }, ...level.records].filter(record => { const key = record.player.trim().toLocaleLowerCase(); if (!key || seenRecords.has(key)) return false; seenRecords.add(key); return true; });
   const recordRows = records.filter(record => record.player).map(record => { const link = safeURL(record.video) || (youtubeId(record.video) ? `https://www.youtube.com/watch?v=${youtubeId(record.video)}` : ''); return `<tr><td>${escapeHTML(record.player)}</td><td>${record.verifier ? 'Verifier' : '100%'}</td><td>${link ? `<a class="record-link" href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">Watch ↗</a>` : '<span class="detail-label">—</span>'}</td></tr>`; }).join('');
-  $('#level-detail').innerHTML = `<div class="detail-head"><div><div class="detail-rank">${rankLabel(level.rank)} / THE LIST</div><h3 class="detail-title">${escapeHTML(level.name)} <span class="speed-badge">${escapeHTML(level.speed)}</span></h3><div class="detail-subtitle">Level details and verified completions</div></div><div class="points-box"><span class="detail-label">POINTS AWARDED</span><strong>${formatPoints(pointsForRank(level.rank))}</strong><span class="detail-label">POINTS</span></div></div><div class="detail-body"><div class="video-wrap">${video}</div><div class="details-grid"><div class="detail-stat"><span class="detail-label">CREATOR</span><span class="detail-value">${escapeHTML(level.creator)}</span></div><div class="detail-stat"><span class="detail-label">VERIFIER</span><span class="detail-value">${escapeHTML(level.verifier)}</span></div><div class="detail-stat"><span class="detail-label">LEVEL ID</span><span class="detail-value">${escapeHTML(level.levelId || 'Not provided')} ${level.levelId ? '<button class="copy-button" type="button" aria-label="Copy level ID">⧉ Copy</button>' : ''}</span></div></div><div class="records-header"><h3>Verified records</h3><span>${String(records.filter(r => r.player).length).padStart(2, '0')} COMPLETIONS</span></div><div class="table-scroll"><table class="records-table"><thead><tr><th>PLAYER</th><th>PROGRESS</th><th>FOOTAGE</th></tr></thead><tbody>${recordRows || '<tr><td colspan="3">No records yet.</td></tr>'}</tbody></table></div></div>`;
+  $('#level-detail').innerHTML = `<div class="detail-topline"><span>LEVEL OVERVIEW</span><span>THE LIST / ${String(level.rank).padStart(2, '0')}</span></div><div class="detail-head"><div class="detail-heading-group"><span class="detail-rank-large">${rankLabel(level.rank)}</span><div><div class="detail-rank">RANKED LEVEL</div><h3 class="detail-title">${escapeHTML(level.name)} <span class="speed-badge">${escapeHTML(level.speed)}</span></h3><div class="detail-subtitle">Created by ${escapeHTML(level.creator)}</div></div></div><div class="points-box"><span class="detail-label">POINTS</span><strong>${formatPoints(pointsForRank(level.rank))}</strong><span class="points-caption">for a completion</span></div></div><div class="detail-body"><div class="video-wrap">${video}</div><div class="video-caption"><span><span class="caption-dot"></span> VERIFICATION VIDEO</span>${id ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener noreferrer">WATCH ON YOUTUBE ↗</a>` : '<span>NOT PROVIDED</span>'}</div><div class="details-grid"><div class="detail-stat"><span class="detail-label">CREATOR</span><span class="detail-value">${escapeHTML(level.creator)}</span></div><div class="detail-stat"><span class="detail-label">VERIFIER</span><span class="detail-value">${escapeHTML(level.verifier || 'Not provided')}</span></div><div class="detail-stat"><span class="detail-label">LEVEL ID</span><span class="detail-value">${escapeHTML(level.levelId || 'Not provided')} ${level.levelId ? '<button class="copy-button" type="button" aria-label="Copy level ID">⧉ Copy</button>' : ''}</span></div></div><div class="records-header"><div><span class="detail-label">THE PLAYERS</span><h3>Verified records <span class="record-count">${records.length}</span></h3></div><span>100% COMPLETIONS</span></div><div class="table-scroll"><table class="records-table"><thead><tr><th>PLAYER</th><th>PROGRESS</th><th>FOOTAGE</th></tr></thead><tbody>${recordRows || '<tr><td colspan="3">No records yet.</td></tr>'}</tbody></table></div></div>`;
 }
-$('#level-list').addEventListener('click', event => { const button = event.target.closest('[data-rank]'); if (!button) return; state.selected = Number(button.dataset.rank); renderList(); });
+$('#level-list').addEventListener('click', event => { const button = event.target.closest('[data-rank]'); if (!button) return; state.selected = Number(button.dataset.rank); document.querySelectorAll('.level-item').forEach(item => { const active = item === button; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'true'); else item.removeAttribute('aria-current'); }); renderDetail(); if (window.matchMedia('(max-width: 750px)').matches) $('#level-detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('#search').addEventListener('input', renderList);
 document.addEventListener('keydown', event => { if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && !$('#view-list').hidden && !$('#player-dialog').open) { event.preventDefault(); $('#search').focus(); } });
 $('#level-detail').addEventListener('click', async event => {
@@ -135,7 +144,7 @@ async function loadLevels() {
     state.levels = results; state.selected = results[0]?.rank || null;
     $('#demo-notice').hidden = !results.some(level => level.demo);
     $('#level-count').textContent = String(results.length);
-    buildLeaderboard(); renderLeaderboard(); renderList();
+    buildLeaderboard(); $('#overview-levels').textContent = String(results.length).padStart(2, '0'); $('#overview-players').textContent = String(state.players.length).padStart(2, '0'); renderLeaderboard(); renderList();
   } catch (error) {
     console.error('Unable to load list:', error);
     $('#demo-notice').hidden = true;
