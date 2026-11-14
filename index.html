@@ -3,13 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b0d0c">
-  <meta name="description" content="SEDL is a community ranking for sped-up Extreme Demons in Geometry Dash.">
+  <meta name="theme-color" content="#121416">
+  <meta name="description" content="The Sped-Up Extreme Demon List: a community ranking for Geometry Dash.">
   <title>SEDL — Sped-Up Extreme Demon List</title>
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <script>try { const saved = localStorage.getItem('sedl-theme'); if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved; } catch (_) {}</script>
   <link rel="stylesheet" href="css/style.css">
   <script src="js/app.js" defer></script>
@@ -23,54 +20,43 @@
         <a href="#leaderboard" data-tab="leaderboard" class="nav-link">Leaderboard</a>
         <a href="#rules" data-tab="rules" class="nav-link">Rules</a>
       </nav>
-      <div class="header-actions"><span class="header-label"><span class="live-dot"></span> COMMUNITY PROJECT</span><button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42m0-14.14-1.42 1.42M6.35 17.65l-1.42 1.42"/></svg><svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5 8.5 8.5 0 1 0 20.5 14.4Z"/></svg></button></div>
+      <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42m0-14.14-1.42 1.42M6.35 17.65l-1.42 1.42"/></svg><svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5 8.5 8.5 0 1 0 20.5 14.4Z"/></svg></button>
     </div>
   </header>
-
   <main class="shell">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <div class="eyebrow"><span class="eyebrow-line"></span> THE DEFINITIVE COMMUNITY RANKING <span class="eyebrow-index">// EST. FOR THE BRAVE</span></div>
-        <h1 id="hero-title">FASTER. HARDER.<br><span>BEYOND LIMITS<span class="accent-period">.</span></span></h1>
-        <p>The Sped-Up Extreme Demon List ranks the most formidable<br class="desktop-only"> sped-up challenges in Geometry Dash. Think you can keep up?</p>
-        <div class="hero-meta"><span><i></i> PUSH THE PACE</span><span class="slash">/</span><span>BEAT THE IMPOSSIBLE</span></div>
-      </div>
-      <div class="hero-art" aria-hidden="true"><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><div class="art-cross cross-one">+</div><div class="art-cross cross-two">+</div><div class="art-speed speed-one"></div><div class="art-speed speed-two"></div><div class="art-speed speed-three"></div><div class="demon-mark"><svg viewBox="0 0 160 160"><path d="M27 38 15 10l42 19 23-14 23 14 42-19-12 28 8 19-10 51-27 27-24 12-24-12-27-27-10-51z" fill="none" stroke="currentColor" stroke-width="3"/><path d="m34 54 35 13-13 17-20-7zm92 0L91 67l13 17 20-7zM57 104l23 13 23-13-8 21-15 8-15-8z" fill="currentColor"/><path d="m44 35 27 14h18l27-14M35 94l10 20m80-20-10 20" fill="none" stroke="currentColor" stroke-width="3"/></svg></div><div class="art-label">SPEED IS<br><strong>EVERYTHING.</strong></div><span class="art-coordinate">SEDL / 001</span></div>
+    <section class="intro">
+      <p class="eyebrow">GEOMETRY DASH COMMUNITY</p>
+      <h1>Sped-Up Extreme Demon List</h1>
+      <p>A ranking of the top 25 sped-up Extreme Demons and the players who complete them.</p>
     </section>
-
-    <div class="demo-notice" id="demo-notice"><span class="notice-icon">!</span><span><strong>You're viewing sample data.</strong> These entries are examples, not official rankings. Replace them in <code>data/levels/</code> to make the list yours.</span></div>
-
+    <div class="demo-notice" id="demo-notice" hidden><span><strong>Sample data.</strong> Some entries are marked as examples.</span></div>
     <section id="view-list" class="view" aria-labelledby="list-heading">
-      <div class="section-heading"><div><div class="section-kicker"><span>01</span> / THE RANKINGS</div><h2 id="list-heading">THE LIST<span class="accent-period">.</span></h2><p>The hardest challenges, ranked. Select a level to see the details.</p></div><div class="list-count"><strong id="level-count">00</strong><span>RANKED<br>LEVELS</span></div></div>
+      <div class="section-heading"><div><h2 id="list-heading">The list</h2><p>Browse the rankings and select a level for details.</p></div><div class="list-count"><strong id="level-count">0</strong><span> / 25 levels</span></div></div>
       <div class="list-layout">
         <aside class="level-sidebar" aria-label="Ranked levels">
-          <div class="sidebar-top"><div class="panel-label">RANKED LEVELS <span id="sidebar-count">0</span></div><label class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><span class="sr-only">Search levels</span><input id="search" type="search" placeholder="Search levels, players..." autocomplete="off"><span class="search-shortcut">/</span></label></div>
+          <div class="sidebar-top"><div class="panel-label">Rankings <span id="sidebar-count">0</span></div><label class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><span class="sr-only">Search levels</span><input id="search" type="search" placeholder="Search levels or players" autocomplete="off"><span class="search-shortcut">/</span></label></div>
           <div class="level-list" id="level-list" aria-live="polite"><div class="empty-state">Loading levels…</div></div>
-          <div class="sidebar-footer"><span>THE FASTEST RISE TO THE TOP</span><span>↗</span></div>
         </aside>
         <div id="level-detail" class="detail-panel" aria-live="polite"><div class="empty-state">Loading level details…</div></div>
       </div>
     </section>
-
     <section id="view-leaderboard" class="view" aria-labelledby="leaderboard-heading" hidden>
-      <div class="section-heading"><div><div class="section-kicker"><span>02</span> / THE PLAYERS</div><h2 id="leaderboard-heading">LEADERBOARD<span class="accent-period">.</span></h2><p>The players pushing the limit. Select a player to view their completions.</p></div><div class="list-count"><strong id="player-count">00</strong><span>RANKED<br>PLAYERS</span></div></div>
-      <div class="leaderboard-panel"><div class="table-heading"><div><span class="panel-label">THE STANDINGS</span><p>Points are based on the rank of each completed level.</p></div><span class="formula-tag">1000 × e<sup>−0.05 × (rank − 1)</sup></span></div><div class="table-scroll"><table class="standings-table"><thead><tr><th>RANK</th><th>PLAYER</th><th>COMPLETIONS</th><th>POINTS</th><th><span class="sr-only">View player</span></th></tr></thead><tbody id="leaderboard-body"></tbody></table></div></div>
+      <div class="section-heading"><div><h2 id="leaderboard-heading">Leaderboard</h2><p>Players ranked by the points earned from their completions.</p></div><div class="list-count"><strong id="player-count">0</strong><span> players</span></div></div>
+      <div class="leaderboard-panel"><div class="table-heading"><div><span class="panel-label">Standings</span><p>Select a player to see their completed levels.</p></div><span class="formula-tag">Points = 1000 × e<sup>−0.05 × (rank − 1)</sup></span></div><div class="table-scroll"><table class="standings-table"><thead><tr><th>Rank</th><th>Player</th><th>Completions</th><th>Points</th><th><span class="sr-only">View player</span></th></tr></thead><tbody id="leaderboard-body"></tbody></table></div></div>
     </section>
-
     <section id="view-rules" class="view" aria-labelledby="rules-heading" hidden>
-      <div class="section-heading"><div><div class="section-kicker"><span>03</span> / THE GUIDELINES</div><h2 id="rules-heading">RULES & GUIDELINES<span class="accent-period">.</span></h2><p>Everything you need to know before submitting a run.</p></div></div>
-      <div class="rules-intro"><span class="notice-icon">!</span><div><strong>Community guidelines template</strong><p>These are starter guidelines, not an approved ruleset. List administrators should publish their exact minimum speed, allowed increments, and submission process before accepting records.</p></div></div>
+      <div class="section-heading"><div><h2 id="rules-heading">Rules &amp; guidelines</h2><p>Information for players submitting a level or record.</p></div></div>
+      <div class="rules-intro"><div><strong>Rules are not finalized</strong><p>These are starter guidelines. List staff should publish the exact minimum speed, allowed increments, and submission process before accepting records.</p></div></div>
       <div class="rules-grid">
-        <article class="rule-card"><span class="rule-number">01 / SPEED</span><h3>Turn up the pace.</h3><p>Submissions must be completed at a speed above the original level's intended speed. The minimum multiplier and permitted speed increments are to be determined by list staff. Include the exact multiplier with every submission.</p></article>
-        <article class="rule-card"><span class="rule-number">02 / VERIFICATION</span><h3>Earn the verification.</h3><p>The verifier is the first player to complete the submitted version at its listed speed under the list's rules. A verifier's completion counts toward their leaderboard points.</p></article>
-        <article class="rule-card"><span class="rule-number">03 / TOOLS</span><h3>Keep it transparent.</h3><p>Disclose the tools and settings used in your run, including MegaHack and any timewarp or speed-modifying features. List staff must define which versions, settings, and modifications are permitted before reviewing submissions.</p></article>
-        <article class="rule-card"><span class="rule-number">04 / EVIDENCE</span><h3>Show the full run.</h3><p>Provide unedited raw footage of the complete run, including the level and speed settings, along with a publicly accessible video. Additional evidence may be requested by list staff.</p></article>
+        <article class="rule-card"><h3>Speed requirements</h3><p>Submissions must be completed above the original level's intended speed. The minimum multiplier and permitted increments are to be determined by list staff. Include the exact multiplier with every submission.</p></article>
+        <article class="rule-card"><h3>Verification</h3><p>The verifier is the first player to complete the submitted version at its listed speed under the list's rules. A verifier's completion counts toward their leaderboard points.</p></article>
+        <article class="rule-card"><h3>MegaHack &amp; timewarp</h3><p>Disclose the tools and settings used in your run, including MegaHack and any timewarp or speed-modifying features. List staff must define which versions, settings, and modifications are permitted.</p></article>
+        <article class="rule-card"><h3>Raw footage</h3><p>Provide unedited raw footage of the complete run, including the level and speed settings, along with a publicly accessible video. Additional evidence may be requested by list staff.</p></article>
       </div>
-      <div class="rules-footnote"><span>↗</span> FINAL ACCEPTANCE AND PLACEMENT ARE AT THE DISCRETION OF LIST STAFF.</div>
     </section>
   </main>
-  <footer class="site-footer shell"><div><img src="assets/logo.svg" alt="SEDL"><p>A community built for those who play faster.</p></div><div class="footer-right"><span>NOT AFFILIATED WITH ROBTOP GAMES.</span><span>BUILT FOR THE GRIND <span class="accent-period">✳</span></span></div></footer>
-  <dialog id="player-dialog" class="player-dialog" aria-labelledby="dialog-title"><div class="modal-header"><div><div class="section-kicker"><span>PLAYER</span> / COMPLETIONS</div><h2 id="dialog-title"></h2><p id="dialog-summary"></p></div><button class="icon-button" id="close-dialog" aria-label="Close player details">✕</button></div><div id="player-completions" class="player-completions"></div></dialog>
+  <footer class="site-footer shell"><span>SEDL <span class="footer-separator">/</span> Sped-Up Extreme Demon List</span><span>Not affiliated with RobTop Games.</span></footer>
+  <dialog id="player-dialog" class="player-dialog" aria-labelledby="dialog-title"><div class="modal-header"><div><p class="modal-label">PLAYER COMPLETIONS</p><h2 id="dialog-title"></h2><p id="dialog-summary"></p></div><button class="icon-button" id="close-dialog" aria-label="Close player details">✕</button></div><div id="player-completions" class="player-completions"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>

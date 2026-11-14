@@ -1,21 +1,21 @@
 # SEDL — Sped-Up Extreme Demon List
 
-A responsive, static community ranking for sped-up Geometry Dash Extreme Demons. No framework, build command, or backend is required. The included entries are **fictional sample data**, not official rankings, and the rules are a starter template that list staff must finalize.
+A static, responsive community ranking for the top 25 sped-up Geometry Dash Extreme Demons. No framework, build command, or backend is required. The list is currently empty: add real level data before publishing rankings. The rules are a starter template that list staff must finalize.
 
 ## Deploy to Cloudflare Pages
 
-1. Push this repository to GitHub and connect it in Cloudflare Pages (Workers & Pages → Create application → Pages → Connect to Git).
-2. Select the branch you want to deploy. If you use production's default branch, merge your changes there first; otherwise select this branch for preview deployments.
+1. Connect this repository in Cloudflare Pages (Workers & Pages → Create application → Pages → Connect to Git).
+2. Select the branch you want to deploy. If you use production's default branch, merge the changes there first; otherwise select this branch for preview deployments.
 3. Use **None** as the framework preset. Leave the build command blank and set the build output directory to `/` (the repository root). Deploy.
 4. Set your desired Pages project name to obtain a `*.pages.dev` address. `sedl.pages.dev` is available only if that name is not already taken by another Cloudflare account.
 
-Cloudflare serves the files directly. To preview locally, run `python3 -m http.server 8000` and visit `http://localhost:8000`. Opening `index.html` directly with `file://` will not load the JSON because browsers restrict local fetches. Google Fonts are optional; system fonts are used if they cannot load.
+Cloudflare serves the files directly. To preview locally, run `python3 -m http.server 8000` and visit `http://localhost:8000`. Opening `index.html` directly with `file://` will not load the JSON because browsers restrict local fetches.
 
-## Manage the list
+## Manage the top 25
 
-`data/_list.json` is an ordered JSON array of filenames in `data/levels/`. The first filename is rank #1, the second is #2, and so on. Add, remove, or reorder filenames to update the list. Every filename must refer to a valid JSON file in that folder. An empty array (`[]`) produces an empty list.
+`data/_list.json` is an ordered JSON array of filenames in `data/levels/`. The first filename is rank #1, the second is #2, and so on. Add, remove, or reorder filenames to update the list. The site displays **only the first 25 entries**; only those entries contribute to the leaderboard. Every displayed filename must refer to a valid JSON file in that folder. An empty array (`[]`) produces an empty list.
 
-Each level file follows this format:
+Each level file follows this format (replace all example values with actual data):
 
 ```json
 {
