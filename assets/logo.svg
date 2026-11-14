@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" role="img" aria-labelledby="title">
+  <title id="title">SEDL — Sped-Up Extreme Demon List</title>
+  <g fill="none" fill-rule="evenodd">
+    <path fill="#C9F45C" d="M5 8h34l-5 8h13L30 55H5l8-15H4l13-21H8z"/>
+    <path fill="#10130B" d="M21 19h15l-5 8H20l-3 5h12l-9 13H9l5-8h10l3-5H15z"/>
+    <path fill="#C9F45C" d="M45 9h7l-7 13h-7zM0 48h8l-4 7H0z"/>
+    <g fill="#F5F7F0">
+      <path d="M65 17h27l-4 7H72l-2 4h16l-8 19H56l4-7h14l2-5H60zM99 17h25l-3 7h-15l-2 5h14l-3 7h-14l-2 4h15l-3 7H86zM130 17h16c8 0 11 4 8 12l-3 7c-3 8-8 11-16 11h-17zm5 7-7 16h6c4 0 6-2 8-6l2-4c2-4 1-6-3-6zM165 17h9l-10 23h14l-3 7h-23z"/>
+    </g>
+    <path fill="#C9F45C" d="M187 17h3l-13 30h-3z"/>
+    <text x="195" y="28" fill="#A6AD9D" font-family="Arial, sans-serif" font-size="7" font-weight="700" letter-spacing="1.2">SPED-UP</text>
+    <text x="195" y="39" fill="#A6AD9D" font-family="Arial, sans-serif" font-size="7" font-weight="700" letter-spacing="1.2">DEMON LIST</text>
+  </g>
+</svg>

@@ -1,0 +1,4 @@
+{
+  "name": "Afterburn", "speed": "2.0x", "creator": "ExampleCreator", "verifier": "Nova", "levelId": "12345678", "youtube": "", "demo": true,
+  "records": [{"player": "Flux", "video": ""}, {"player": "Echo", "video": ""}]
+}
