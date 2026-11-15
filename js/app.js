@@ -123,6 +123,42 @@ $('#level-detail').addEventListener('click', async event => {
   catch (_) { showToast('Could not copy. Please copy the ID manually.'); }
 });
 
+function populateSubmitLevels() {
+  const select = $('#submit-level');
+  select.innerHTML = state.levels.length ? '<option value="">Select a level</option>' + state.levels.map(level => `<option value="${level.rank}">#${level.rank} · ${escapeHTML(level.name)} (${escapeHTML(level.speed)})</option>`).join('') : '<option value="">No levels available</option>';
+  select.disabled = !state.levels.length;
+  $('#submit-action').disabled = !state.levels.length;
+}
+$('#open-submit').addEventListener('click', () => {
+  $('#submit-status').textContent = ''; $('#submit-status').classList.remove('success');
+  if (state.levels.some(level => level.rank === state.selected)) $('#submit-level').value = String(state.selected);
+  $('#submit-dialog').showModal();
+});
+$('#close-submit').addEventListener('click', () => $('#submit-dialog').close());
+$('#submit-dialog').addEventListener('click', event => { if (event.target === $('#submit-dialog')) $('#submit-dialog').close(); });
+$('#submit-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const level = state.levels.find(item => item.rank === Number($('#submit-level').value));
+  if (!level) { $('#submit-status').textContent = 'Please select a level.'; return; }
+  const button = $('#submit-action');
+  const status = $('#submit-status');
+  button.disabled = true; button.firstChild.textContent = 'Sending… '; status.textContent = '';
+  try {
+    const response = await fetch('/api/submit', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rank: level.rank, levelName: level.name, speed: level.speed, levelFile: level.filename, player: $('#submit-player').value.trim(), video: $('#submit-video').value.trim(), rawFootage: $('#submit-raw').value.trim() })
+    });
+    let result; try { result = await response.json(); } catch (_) { throw new Error('The submission service is unavailable. Please try again later.'); }
+    if (!response.ok || !result.success) throw new Error(result.error || 'Could not send your submission. Please try again.');
+    $('#submit-form').reset();
+    status.textContent = 'Submission sent! The list team will review your record.';
+    status.classList.add('success');
+  } catch (error) {
+    status.classList.remove('success');
+    status.textContent = error.message || 'Could not send your submission. Please try again.';
+  } finally { button.disabled = !state.levels.length; button.firstChild.textContent = 'Send submission '; }
+});
+
 async function loadLevels() {
   try {
     const response = await fetch('data/_list.json');
@@ -135,19 +171,20 @@ async function loadLevels() {
       const jsonFilename = /\.json$/i.test(filename) ? filename : `${filename}.json`;
       let levelResponse = await fetch(`data/${encodeURIComponent(jsonFilename)}`);
       // Also support the data/levels layout used by earlier versions.
-      if (levelResponse.status === 404) levelResponse = await fetch(`data/levels/${encodeURIComponent(jsonFilename)}`);
+      if (levelResponse.status === 404 || levelResponse.headers?.get('content-type')?.includes('text/html')) levelResponse = await fetch(`data/levels/${encodeURIComponent(jsonFilename)}`);
       if (!levelResponse.ok) throw new Error(`${jsonFilename} returned ${levelResponse.status}`);
       const level = await levelResponse.json();
       if (!level || typeof level !== 'object' || Array.isArray(level) || !level.name) throw new Error(`${filename} has no level name`);
-      return { rank: index + 1, name: String(level.name), speed: String(level.speed || 'Speed TBD'), creator: String(level.creator || 'Unknown'), verifier: String(level.verifier || ''), levelId: String(level.levelId || ''), youtube: String(level.youtube || ''), demo: level.demo === true, records: Array.isArray(level.records) ? level.records.filter(record => record && typeof record === 'object' && record.player).map(record => ({ player: String(record.player), video: String(record.video || '') })) : [] };
+      return { rank: index + 1, filename: jsonFilename, name: String(level.name), speed: String(level.speed || 'Speed TBD'), creator: String(level.creator || 'Unknown'), verifier: String(level.verifier || ''), levelId: String(level.levelId || ''), youtube: String(level.youtube || ''), demo: level.demo === true, records: Array.isArray(level.records) ? level.records.filter(record => record && typeof record === 'object' && record.player).map(record => ({ player: String(record.player), video: String(record.video || '') })) : [] };
     }));
     state.levels = results; state.selected = results[0]?.rank || null;
     $('#demo-notice').hidden = !results.some(level => level.demo);
     $('#level-count').textContent = String(results.length);
-    buildLeaderboard(); $('#overview-levels').textContent = String(results.length).padStart(2, '0'); $('#overview-players').textContent = String(state.players.length).padStart(2, '0'); renderLeaderboard(); renderList();
+    populateSubmitLevels(); buildLeaderboard(); $('#overview-levels').textContent = String(results.length).padStart(2, '0'); $('#overview-players').textContent = String(state.players.length).padStart(2, '0'); renderLeaderboard(); renderList();
   } catch (error) {
     console.error('Unable to load list:', error);
     $('#demo-notice').hidden = true;
+    $('#submit-level').innerHTML = '<option value="">Levels unavailable</option>';
     $('#level-list').innerHTML = '<div class="empty-state">Could not load the list. Check the data files and try again.</div>';
     $('#level-detail').innerHTML = '<div class="empty-state empty-detail">List data unavailable.</div>';
     $('#leaderboard-body').innerHTML = '<tr><td colspan="5" class="empty-state">Could not load leaderboard data.</td></tr>';

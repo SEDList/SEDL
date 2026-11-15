@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>Record review — SEDL</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <script>try { const saved = localStorage.getItem('sedl-theme'); if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved; } catch (_) {}</script>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/review.js" defer></script>
+</head>
+<body>
+  <header class="site-header"><div class="header-inner shell review-header"><a class="brand" href="/" aria-label="SEDL home"><img src="/assets/logo.svg" alt="SEDL — Sped-Up Demon List"></a><span class="review-header-label">STAFF REVIEW</span><button class="icon-button" id="review-theme" type="button" aria-label="Switch theme" title="Switch theme">◐</button></div></header>
+  <main class="review-main shell">
+    <a class="back-link" href="/">← Back to the list</a>
+    <div class="review-heading"><p class="section-overline">SEDL / PRIVATE REVIEW</p><h1>Record submission<span class="accent-period">.</span></h1><p>Review the evidence before adding this record to the list.</p></div>
+    <div id="review-status" class="review-message" role="status" aria-live="polite">Loading submission…</div>
+    <div id="test-banner" class="test-banner" role="status" hidden>System test worked! KV, Discord webhook, and token verification are all working.</div>
+    <section id="review-content" class="review-panel" aria-labelledby="review-level" hidden>
+      <div class="review-panel-head"><div><p class="detail-label">SUBMITTED LEVEL</p><h2 id="review-level"></h2><p id="review-subtitle"></p></div><span class="review-tag">FOR REVIEW</span></div>
+      <dl class="review-grid">
+        <div><dt>PLAYER</dt><dd id="review-player"></dd></div>
+        <div><dt>RANK</dt><dd id="review-rank"></dd></div>
+        <div><dt>SPEED</dt><dd id="review-speed"></dd></div>
+        <div><dt>LEVEL FILE</dt><dd id="review-file"></dd></div>
+        <div><dt>RECORD ID</dt><dd id="review-id"></dd></div>
+        <div><dt>SUBMITTED</dt><dd id="review-date"></dd></div>
+      </dl>
+      <div class="review-section"><h3>Evidence</h3><div class="evidence-links"><a id="review-video" target="_blank" rel="noopener noreferrer" hidden>Watch video ↗</a><a id="review-raw" target="_blank" rel="noopener noreferrer" hidden>Open raw footage ↗</a><span id="no-evidence" hidden>No evidence links provided.</span></div></div>
+      <div class="review-section"><div class="review-json-heading"><div><h3>Record JSON</h3><p>Copy this into the level’s <code>records</code> array after approval.</p></div><button type="button" class="copy-json" id="copy-json">Copy JSON</button></div><pre><code id="record-json"></code></pre><p id="copy-status" class="copy-status" role="status" aria-live="polite"></p></div>
+    </section>
+  </main>
+  <footer class="site-footer shell"><div><strong>SEDL</strong><span>Sped-Up Extreme Demon List</span></div><span>Community-run. Not affiliated with RobTop Games.</span></footer>
+</body>
+</html>

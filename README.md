@@ -38,3 +38,16 @@ Each level file follows this format (replace all example values with actual data
 Each completed level awards `1000 × e^(−0.05 × (rank − 1))` points, rounded to two decimal places per level. The leaderboard sums those rounded awards, with alphabetical ordering for ties. The verifier automatically earns points. Edit `pointsForRank` in `js/app.js` to change the curve.
 
 Before accepting submissions, edit the Rules tab in `index.html` to set the actual minimum speed, allowed increments, accepted MegaHack/timewarp settings, evidence requirements, and submission process. The included guidance intentionally does not invent official policy.
+
+## Record submissions and private review
+
+Cloudflare Pages automatically deploys the files in `functions/`; no site build command is needed. Configure these bindings for **each Pages environment** you use (production and/or preview):
+
+- KV namespace binding `RECORDS_KV`.
+- Secret environment variable `DISCORD_WEBHOOK_URL`, pointing to a webhook in a staff-only Discord channel.
+
+The form posts to `/api/submit`. The function checks the selected rank and filename against the deployed list, saves the submission in KV, and sends a private review link to Discord. The submitter does not receive the token or review URL. A successful submission is **not automatically approved** or added to a level file: staff inspect the evidence, copy the JSON from the review page, and manually add it to the level's `records` array. Actual records remain in KV until staff delete them. If Discord fails, the function attempts to delete the saved submission and returns an error.
+
+To test the deployed bindings, visit `/record/submit/test/` on the intended Pages domain and click the link sent to Discord. The dummy KV entry expires after one hour. KV is eventually consistent across locations, so if a newly sent link initially fails, wait briefly and reload. The test route requires deployed Pages Functions and live bindings: a plain `python3 -m http.server` preview serves only the static UI, not the API. For local Functions development, use Wrangler Pages dev with a local KV binding and a local secret in `.dev.vars`; never commit that file. Run `node --test tests/records.test.mjs` for mocked API tests.
+
+**Security and operations:** The review link is a bearer credential, not staff login or role-based access: anyone who obtains it can read the submission. Keep the webhook channel private, avoid sharing links, and delete a KV record to revoke access. The required lookup API puts the token in a query string; ensure Cloudflare and any downstream request logging/redaction policies do not retain or expose query strings. The submission endpoint and the requested GET test endpoint are public and can be abused to generate KV writes and Discord messages. Configure Cloudflare WAF/rate limits for `/api/submit` and restrict `/record/submit/test/` to staff (or disable it after testing); this code does not itself provide rate limiting or authentication for that test endpoint. KV key checks are not atomic, so extremely unlikely concurrent random ID collisions cannot be completely ruled out.
