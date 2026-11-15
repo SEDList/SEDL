@@ -36,7 +36,7 @@ export async function onRequestPost(context) {
 
     const id = await unusedId(env.RECORDS_KV, rank);
     const token = randomToken();
-    const record = { rank, id, levelName: level.name, speed: level.speed, levelFile: jsonFilename, player, video, rawFootage, isTest: false, submittedAt: new Date().toISOString(), token };
+    const record = { rank, id, levelName: level.name, speed: level.speed, levelFile: jsonFilename, levelSlug: jsonFilename.replace(/\.json$/i, ''), player, video, rawFootage, isTest: false, status: 'pending', submittedAt: new Date().toISOString(), token };
     const key = `${rank}:${id}`;
     await env.RECORDS_KV.put(key, JSON.stringify(record));
     try { await sendWebhook(env.DISCORD_WEBHOOK_URL, record, reviewURL(request, rank, id, token)); }
