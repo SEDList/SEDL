@@ -1,7 +1,7 @@
 import { jsonResponse, readJSON } from '../../lib/record-utils.js';
 
 function validCredentials(rank, id, token) {
-  return /^(?:0|[1-9]|1\d|2[0-5])$/.test(rank) && /^[0-9]{10}$/.test(id) && /^[A-Za-z0-9_~!@$*\-]{20}$/.test(token);
+  return /^(?:0|[1-9]\d*)$/.test(rank) && Number.isSafeInteger(Number(rank)) && /^[0-9]{10}$/.test(id) && /^[A-Za-z0-9_~!@$*\-]{20}$/.test(token);
 }
 
 async function authorizedRecord(kv, rank, id, token) {

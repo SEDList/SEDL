@@ -115,3 +115,24 @@ test('webhook failure reports saved decision and never restores the consumed tok
     assert(!('token' in JSON.parse(values.get('1:1234567890'))));
   } finally { globalThis.fetch = original; }
 });
+
+test('submissions and reviews work beyond rank 25', async () => {
+  const { env } = environment();
+  env.ASSETS.fetch = async url => {
+    const path = new URL(url).pathname;
+    if (path === '/data/_list.json') return Response.json(Array(101).fill('trueffet'));
+    if (path === '/data/trueffet.json') return Response.json({ name: 'Trueffet', speed: '1.3x' });
+    return new Response('Not found', { status: 404 });
+  };
+  let payload; const original = globalThis.fetch;
+  globalThis.fetch = async (_, init) => { payload = JSON.parse(init.body); return new Response(null, { status: 204 }); };
+  try {
+    const result = await onRequestPost({ request: request({ ...valid, rank: 101 }), env });
+    assert.equal(result.status, 200);
+    const parts = reviewParts(getReviewLink(payload)); assert.equal(parts.rank, '101');
+    assert.equal((await lookup({ request: lookupRequest(parts), env })).status, 200);
+    assert.equal((await decide({ request: decisionRequest({ ...parts, action: 'reject' }), env })).status, 200);
+    assert.equal((await lookup({ request: lookupRequest(parts), env })).status, 401);
+    assert.equal((await onRequestPost({ request: request({ ...valid, rank: '9007199254740992' }), env })).status, 400);
+  } finally { globalThis.fetch = original; }
+});

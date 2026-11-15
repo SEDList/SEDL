@@ -1,10 +1,12 @@
 'use strict';
 
 // The manifest order is the source of truth for rank. Score each completion once.
-const state = { levels: [], selected: null, players: [] };
+const state = { levels: [], selected: null, players: [], visibleLevels: 50, visiblePlayers: 50 };
+const LEVEL_PAGE_SIZE = 50;
+const DEMON_DIFFICULTIES = ['Easy Demon', 'Medium Demon', 'Hard Demon', 'Insane Demon', 'Extreme Demon'];
 const $ = (selector) => document.querySelector(selector);
 const escapeHTML = (value) => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
-const pointsForRank = rank => Math.round(1000 * Math.exp(-0.05 * (rank - 1)) * 100) / 100;
+const pointsForRank = rank => Math.round((1 + 999 * Math.exp(-0.05 * (rank - 1))) * 100) / 100;
 const formatPoints = points => points.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const rankLabel = rank => `#${String(rank).padStart(2, '0')}`;
 
@@ -50,8 +52,8 @@ function navigate() {
   });
   if (levelMatch && state.levels.length) {
     const level = state.levels.find(item => item.filename.replace(/\.json$/i, '').toLowerCase() === levelMatch[1].toLowerCase());
-    if (level) { state.selected = level.rank; $('#search').value = ''; renderList(); }
-    else showToast('That level is not in the current top 25.');
+    if (level) { state.selected = level.rank; $('#search').value = ''; $('#difficulty-filter').value = 'all'; renderList(); }
+    else showToast('That level is not in the current list.');
   }
 }
 function levelHash(level) { return `#level/${level.filename.replace(/\.json$/i, '')}`; }
@@ -78,9 +80,11 @@ function renderLeaderboard() {
   $('#player-count').textContent = String(state.players.length);
   const query = $('#player-search').value.trim().toLocaleLowerCase();
   const rows = state.players.map((player, index) => ({ player, index })).filter(({ player }) => player.name.toLocaleLowerCase().includes(query));
-  $('#leaderboard-body').innerHTML = rows.length ? rows.map(({ player, index }) => `<tr><td><span class="standing-rank ${index < 3 ? 'top-rank' : ''}">${rankLabel(index + 1)}</span></td><td><button type="button" class="player-button" data-player="${index}" aria-label="View ${escapeHTML(player.name)}'s completions"><span class="player-avatar" aria-hidden="true">${escapeHTML([...player.name][0].toUpperCase())}</span>${escapeHTML(player.name)} <span class="player-arrow" aria-hidden="true">↗</span></button></td><td>${player.completions.length}</td><td class="standing-points">${formatPoints(player.points)} <span class="detail-label">PTS</span></td><td></td></tr>`).join('') : `<tr><td colspan="5" class="empty-state">${state.players.length ? 'No players match your search.' : 'No player completions yet.'}</td></tr>`;
+  const visible = rows.slice(0, state.visiblePlayers);
+  $('#leaderboard-body').innerHTML = rows.length ? visible.map(({ player, index }) => `<tr><td><span class="standing-rank ${index < 3 ? 'top-rank' : ''}">${rankLabel(index + 1)}</span></td><td><button type="button" class="player-button" data-player="${index}" aria-label="View ${escapeHTML(player.name)}'s completions"><span class="player-avatar" aria-hidden="true">${escapeHTML([...player.name][0].toUpperCase())}</span>${escapeHTML(player.name)} <span class="player-arrow" aria-hidden="true">↗</span></button></td><td>${player.completions.length}</td><td class="standing-points">${formatPoints(player.points)} <span class="detail-label">PTS</span></td><td></td></tr>`).join('') + (visible.length < rows.length ? `<tr><td colspan="5" class="list-more">Showing ${visible.length} of ${rows.length}<button type="button" class="load-more-players">Show more players</button></td></tr>` : '') : `<tr><td colspan="5" class="empty-state">${state.players.length ? 'No players match your search.' : 'No player completions yet.'}</td></tr>`;
 }
-$('#player-search').addEventListener('input', renderLeaderboard);
+$('#player-search').addEventListener('input', () => { state.visiblePlayers = 50; renderLeaderboard(); });
+$('#leaderboard-body').addEventListener('click', event => { if (event.target.closest('.load-more-players')) { state.visiblePlayers += 50; renderLeaderboard(); } });
 function openPlayer(index) {
   const player = state.players[index]; if (!player) return;
   $('#dialog-title').textContent = player.name;
@@ -90,13 +94,14 @@ function openPlayer(index) {
 }
 $('#leaderboard-body').addEventListener('click', event => { const row = event.target.closest('[data-player]'); if (row) openPlayer(Number(row.dataset.player)); });
 
-$('#player-completions').addEventListener('click', event => { const button = event.target.closest('[data-level-rank]'); if (!button) return; state.selected = Number(button.dataset.levelRank); $('#search').value = ''; $('#player-dialog').close(); const level = state.levels.find(item => item.rank === state.selected); location.hash = level ? levelHash(level) : '#list'; navigate(); renderList(); if (window.matchMedia('(max-width: 750px)').matches) $('#level-detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#player-completions').addEventListener('click', event => { const button = event.target.closest('[data-level-rank]'); if (!button) return; state.selected = Number(button.dataset.levelRank); $('#search').value = ''; $('#difficulty-filter').value = 'all'; $('#player-dialog').close(); const level = state.levels.find(item => item.rank === state.selected); location.hash = level ? levelHash(level) : '#list'; navigate(); renderList(); if (window.matchMedia('(max-width: 750px)').matches) $('#level-detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('#close-dialog').addEventListener('click', () => $('#player-dialog').close());
 $('#player-dialog').addEventListener('click', event => { if (event.target === $('#player-dialog')) $('#player-dialog').close(); });
 
 function filteredLevels() {
   const query = $('#search').value.trim().toLocaleLowerCase();
-  return state.levels.filter(level => [level.name, level.creator, level.verifier].some(value => String(value).toLocaleLowerCase().includes(query)));
+  const difficulty = $('#difficulty-filter').value;
+  return state.levels.filter(level => (difficulty === 'all' || (difficulty === 'unspecified' ? !level.difficulty : level.difficulty === difficulty)) && [level.name, level.creator, level.verifier].some(value => String(value).toLocaleLowerCase().includes(query)));
 }
 function renderList() {
   const filtered = filteredLevels();
@@ -106,11 +111,14 @@ function renderList() {
   if ($('#search').value && state.selected && state.selected !== previousSelection) {
     history.replaceState(null, '', levelHash(filtered.find(level => level.rank === state.selected)));
   }
-  $('#level-list').innerHTML = filtered.length ? filtered.map(level => {
+  const selectedIndex = filtered.findIndex(level => level.rank === state.selected);
+  if (selectedIndex >= state.visibleLevels) state.visibleLevels = Math.ceil((selectedIndex + 1) / LEVEL_PAGE_SIZE) * LEVEL_PAGE_SIZE;
+  const visible = filtered.slice(0, state.visibleLevels);
+  $('#level-list').innerHTML = filtered.length ? visible.map(level => {
     const video = youtubeId(level.youtube);
     const thumb = video ? `<img src="https://i.ytimg.com/vi/${video}/default.jpg" loading="lazy" alt="">` : '';
-    return `<button type="button" class="level-item ${state.selected === level.rank ? 'active' : ''}" data-rank="${level.rank}" ${state.selected === level.rank ? 'aria-current="true"' : ''}><span class="level-rank">${String(level.rank).padStart(2, '0')}</span><span class="level-thumb">${thumb}</span><span class="level-info"><span class="level-name">${escapeHTML(level.name)}</span><span class="level-creator">${escapeHTML(level.creator)}</span></span><span class="list-speed">${escapeHTML(level.speed)}</span></button>`;
-  }).join('') : `<div class="empty-state">${state.levels.length ? 'No levels match your search.' : 'No levels have been added yet.'}</div>`;
+    return `<button type="button" class="level-item ${state.selected === level.rank ? 'active' : ''}" data-rank="${level.rank}" ${state.selected === level.rank ? 'aria-current="true"' : ''}><span class="level-rank">${String(level.rank).padStart(2, '0')}</span><span class="level-thumb">${thumb}</span><span class="level-info"><span class="level-name">${escapeHTML(level.name)}</span><span class="level-creator">${escapeHTML(level.creator)}${level.difficulty ? ` · <span class="level-difficulty">${escapeHTML(level.difficulty)}</span>` : ''}</span></span><span class="list-speed">${escapeHTML(level.speed)}</span></button>`;
+  }).join('') + (visible.length < filtered.length ? `<div class="list-more">Showing ${visible.length} of ${filtered.length}<button type="button" class="load-more-levels">Show more levels</button></div>` : '') : `<div class="empty-state">${state.levels.length ? 'No levels match your search or difficulty filter.' : 'No levels have been added yet.'}</div>`;
   renderDetail();
 }
 function renderDetail() {
@@ -123,10 +131,12 @@ function renderDetail() {
   const seenRecords = new Set();
   const records = [{ player: level.verifier, video: level.youtube, verifier: true }, ...level.records].filter(record => { const key = record.player.trim().toLocaleLowerCase(); if (!key || seenRecords.has(key)) return false; seenRecords.add(key); return true; });
   const recordRows = records.filter(record => record.player).map(record => { const link = safeURL(record.video) || (youtubeId(record.video) ? `https://www.youtube.com/watch?v=${youtubeId(record.video)}` : ''); return `<tr><td>${escapeHTML(record.player)}</td><td>${record.verifier ? 'Verifier' : '100%'}</td><td>${link ? `<a class="record-link" href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">Watch ↗</a>` : '<span class="detail-label">—</span>'}</td></tr>`; }).join('');
-  $('#level-detail').innerHTML = `<div class="detail-topline"><span>LEVEL OVERVIEW</span><div class="detail-top-actions"><button type="button" class="share-level" aria-label="Copy link to ${escapeHTML(level.name)}">↗ Share level</button><span>THE LIST / ${String(level.rank).padStart(2, '0')}</span></div></div><div class="detail-head"><div class="detail-heading-group"><span class="detail-rank-large">${rankLabel(level.rank)}</span><div><div class="detail-rank">RANKED LEVEL</div><h3 class="detail-title">${escapeHTML(level.name)} <span class="speed-badge">${escapeHTML(level.speed)}</span></h3><div class="detail-subtitle">Created by ${escapeHTML(level.creator)}</div></div></div><div class="points-box"><span class="detail-label">POINTS</span><strong>${formatPoints(pointsForRank(level.rank))}</strong><span class="points-caption">for a completion</span></div></div><div class="detail-body"><div class="video-wrap">${video}</div><div class="video-caption"><span><span class="caption-dot"></span> VERIFICATION VIDEO</span>${id ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener noreferrer">WATCH ON YOUTUBE ↗</a>` : '<span>NOT PROVIDED</span>'}</div><div class="details-grid"><div class="detail-stat"><span class="detail-label">CREATOR</span><span class="detail-value">${escapeHTML(level.creator)}</span></div><div class="detail-stat"><span class="detail-label">VERIFIER</span><span class="detail-value">${escapeHTML(level.verifier || 'Not provided')}</span></div><div class="detail-stat"><span class="detail-label">LEVEL ID</span><span class="detail-value">${escapeHTML(level.levelId || 'Not provided')} ${level.levelId ? '<button class="copy-button" type="button" aria-label="Copy level ID">⧉ Copy</button>' : ''}</span></div></div><div class="records-header"><div><span class="detail-label">THE PLAYERS</span><h3>Verified records <span class="record-count">${records.length}</span></h3></div><button class="submit-from-level" type="button">Submit a record ↗</button></div><div class="table-scroll"><table class="records-table"><thead><tr><th>PLAYER</th><th>PROGRESS</th><th>FOOTAGE</th></tr></thead><tbody>${recordRows || '<tr><td colspan="3">No records yet.</td></tr>'}</tbody></table></div></div>`;
+  $('#level-detail').innerHTML = `<div class="detail-topline"><span>LEVEL OVERVIEW</span><div class="detail-top-actions"><button type="button" class="share-level" aria-label="Copy link to ${escapeHTML(level.name)}">↗ Share level</button><span>THE LIST / ${String(level.rank).padStart(2, '0')}</span></div></div><div class="detail-head"><div class="detail-heading-group"><span class="detail-rank-large">${rankLabel(level.rank)}</span><div><div class="detail-rank">RANKED LEVEL</div><h3 class="detail-title">${escapeHTML(level.name)} <span class="speed-badge">${escapeHTML(level.speed)}</span>${level.difficulty ? `<span class="difficulty-badge">${escapeHTML(level.difficulty)}</span>` : ''}</h3><div class="detail-subtitle">Created by ${escapeHTML(level.creator)}</div></div></div><div class="points-box"><span class="detail-label">POINTS</span><strong>${formatPoints(pointsForRank(level.rank))}</strong><span class="points-caption">for a completion</span></div></div><div class="detail-body"><div class="video-wrap">${video}</div><div class="video-caption"><span><span class="caption-dot"></span> VERIFICATION VIDEO</span>${id ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener noreferrer">WATCH ON YOUTUBE ↗</a>` : '<span>NOT PROVIDED</span>'}</div><div class="details-grid"><div class="detail-stat"><span class="detail-label">CREATOR</span><span class="detail-value">${escapeHTML(level.creator)}</span></div><div class="detail-stat"><span class="detail-label">VERIFIER</span><span class="detail-value">${escapeHTML(level.verifier || 'Not provided')}</span></div><div class="detail-stat"><span class="detail-label">LEVEL ID</span><span class="detail-value">${escapeHTML(level.levelId || 'Not provided')} ${level.levelId ? '<button class="copy-button" type="button" aria-label="Copy level ID">⧉ Copy</button>' : ''}</span></div></div><div class="records-header"><div><span class="detail-label">THE PLAYERS</span><h3>Verified records <span class="record-count">${records.length}</span></h3></div><button class="submit-from-level" type="button">Submit a record ↗</button></div><div class="table-scroll"><table class="records-table"><thead><tr><th>PLAYER</th><th>PROGRESS</th><th>FOOTAGE</th></tr></thead><tbody>${recordRows || '<tr><td colspan="3">No records yet.</td></tr>'}</tbody></table></div></div>`;
 }
 $('#level-list').addEventListener('click', event => { const button = event.target.closest('[data-rank]'); if (!button) return; state.selected = Number(button.dataset.rank); const level = state.levels.find(item => item.rank === state.selected); if (level) history.replaceState(null, '', levelHash(level)); document.querySelectorAll('.level-item').forEach(item => { const active = item === button; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'true'); else item.removeAttribute('aria-current'); }); renderDetail(); if (window.matchMedia('(max-width: 750px)').matches) $('#level-detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-$('#search').addEventListener('input', renderList);
+$('#search').addEventListener('input', () => { state.visibleLevels = LEVEL_PAGE_SIZE; renderList(); });
+$('#difficulty-filter').addEventListener('change', () => { state.visibleLevels = LEVEL_PAGE_SIZE; renderList(); });
+$('#level-list').addEventListener('click', event => { if (event.target.closest('.load-more-levels')) { state.visibleLevels += LEVEL_PAGE_SIZE; renderList(); } });
 $('#level-list').addEventListener('click', event => { if (event.target.closest('.retry-load')) { event.target.disabled = true; event.target.textContent = 'Loading…'; loadLevels(); } });
 document.addEventListener('keydown', event => { if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && !$('#view-list').hidden && !$('#player-dialog').open) { event.preventDefault(); $('#search').focus(); } });
 $('#level-detail').addEventListener('click', async event => {
@@ -180,13 +190,29 @@ $('#submit-form').addEventListener('submit', async event => {
   } finally { button.disabled = !state.levels.length; button.firstChild.textContent = 'Send submission '; }
 });
 
+// Bound parallel fetches so large manifests do not start thousands of requests at once.
+async function mapConcurrent(items, limit, mapper, onProgress) {
+  const output = new Array(items.length);
+  let next = 0, completed = 0;
+  async function worker() {
+    while (next < items.length) {
+      const index = next++;
+      output[index] = await mapper(items[index], index);
+      completed++;
+      if (onProgress) onProgress(completed, items.length);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return output;
+}
+
 async function loadLevels() {
   try {
     const response = await fetch('data/_list.json');
     if (!response.ok) throw new Error(`Manifest returned ${response.status}`);
     const manifest = await response.json();
     if (!Array.isArray(manifest)) throw new Error('Manifest must be an array');
-    const results = await Promise.all(manifest.slice(0, 25).map(async (filename, index) => {
+    const results = await mapConcurrent(manifest, 10, async (filename, index) => {
       // Accept filenames only, not paths or URLs.
       if (typeof filename !== 'string' || !/^[\w-]+(?:\.json)?$/i.test(filename)) throw new Error(`Invalid filename at rank ${index + 1}`);
       const jsonFilename = /\.json$/i.test(filename) ? filename : `${filename}.json`;
@@ -196,8 +222,9 @@ async function loadLevels() {
       if (!levelResponse.ok) throw new Error(`${jsonFilename} returned ${levelResponse.status}`);
       const level = await levelResponse.json();
       if (!level || typeof level !== 'object' || Array.isArray(level) || !level.name) throw new Error(`${filename} has no level name`);
-      return { rank: index + 1, filename: jsonFilename, name: String(level.name), speed: String(level.speed || 'Speed TBD'), creator: String(level.creator || 'Unknown'), verifier: String(level.verifier || ''), levelId: String(level.levelId || ''), youtube: String(level.youtube || ''), demo: level.demo === true, records: Array.isArray(level.records) ? level.records.filter(record => record && typeof record === 'object' && record.player).map(record => ({ player: String(record.player), video: String(record.video || '') })) : [] };
-    }));
+      const difficulty = DEMON_DIFFICULTIES.find(item => item.toLowerCase() === String(level.difficulty || '').trim().toLowerCase()) || '';
+      return { rank: index + 1, filename: jsonFilename, difficulty, name: String(level.name), speed: String(level.speed || 'Speed TBD'), creator: String(level.creator || 'Unknown'), verifier: String(level.verifier || ''), levelId: String(level.levelId || ''), youtube: String(level.youtube || ''), demo: level.demo === true, records: Array.isArray(level.records) ? level.records.filter(record => record && typeof record === 'object' && record.player).map(record => ({ player: String(record.player), video: String(record.video || '') })) : [] };
+    }, (done, total) => { if (total >= 50 && (done % 20 === 0 || done === total)) $('#level-list').innerHTML = `<div class="empty-state">Loading levels… ${done} / ${total}</div>`; });
     state.levels = results; state.selected = results[0]?.rank || null;
     $('#demo-notice').hidden = !results.some(level => level.demo);
     $('#level-count').textContent = String(results.length);

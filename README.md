@@ -1,6 +1,6 @@
-# SEDL — Sped-Up Extreme Demon List
+# SEDL — Sped-Up Demon List
 
-A static, responsive community ranking for the top 25 sped-up Geometry Dash Extreme Demons. No framework, build command, or backend is required. The included rankings and records are loaded from the repository’s data folder. The rules are a starter template that list staff must finalize.
+A static, responsive community ranking for sped-up Geometry Dash Demons of all difficulties. No framework, build command, or backend is required. The included rankings and records are loaded from the repository’s data folder. The rules are a starter template that list staff must finalize.
 
 ## Deploy to Cloudflare Pages
 
@@ -11,15 +11,16 @@ A static, responsive community ranking for the top 25 sped-up Geometry Dash Extr
 
 Cloudflare serves the files directly. To preview locally, run `python3 -m http.server 8000` and visit `http://localhost:8000`. Opening `index.html` directly with `file://` will not load the JSON because browsers restrict local fetches.
 
-## Manage the top 25
+## Manage the list
 
-`data/_list.json` is an ordered JSON array of level names or filenames in `data/`. For example, `"trueffet"` loads `data/trueffet.json` (the `.json` suffix is optional). The first entry is rank #1, the second is #2, and so on. Add, remove, or reorder filenames to update the list. The site displays **only the first 25 entries**; only those entries contribute to the leaderboard. Every displayed entry must refer to a valid JSON file in that folder. Files in `data/levels/` are also supported as a fallback. An empty array (`[]`) produces an empty list. Use the Share level button to copy a direct `#level/<filename>` link; links continue to work if the level changes rank.
+`data/_list.json` is an ordered JSON array of level names or filenames in `data/`. For example, `"trueffet"` loads `data/trueffet.json` (the `.json` suffix is optional). The first entry is rank #1, the second is #2, and so on. Add, remove, or reorder filenames to update the list. All entries are displayed and contribute to the leaderboard. The existing repository data remains unchanged; add more verified levels as they become available. Every displayed entry must refer to a valid JSON file in that folder. Files in `data/levels/` are also supported as a fallback. An empty array (`[]`) produces an empty list. Use the Share level button to copy a direct `#level/<filename>` link; links continue to work if the level changes rank.
 
 Each level file follows this format (replace all example values with actual data):
 
 ```json
 {
   "name": "Level name",
+  "difficulty": "Hard Demon",
   "speed": "1.5x",
   "creator": "Creator name",
   "verifier": "Player name",
@@ -31,11 +32,11 @@ Each level file follows this format (replace all example values with actual data
 }
 ```
 
-`youtube` and record `video` can be empty until footage is available. Set `"demo": true` on example entries to display the sample-data notice; remove the flag for real entries. Keep the verifier out of `records`: they are automatically shown as a verified completion. Player names are matched case-insensitively and each player scores a level only once, even if duplicated in the data. IDs are treated as text. An unavailable or invalid level file displays an error rather than silently changing ranks.
+`difficulty` is optional. Supported values are `Easy Demon`, `Medium Demon`, `Hard Demon`, `Insane Demon`, and `Extreme Demon`; missing or unrecognized values are treated as unspecified, not guessed. The list can be filtered by difficulty. `youtube` and record `video` can be empty until footage is available. Set `"demo": true` on example entries to display the sample-data notice; remove the flag for real entries. Keep the verifier out of `records`: they are automatically shown as a verified completion. Player names are matched case-insensitively and each player scores a level only once, even if duplicated in the data. IDs are treated as text. An unavailable or invalid level file displays an error rather than silently changing ranks.
 
 ## Points and rules
 
-Each completed level awards `1000 × e^(−0.05 × (rank − 1))` points, rounded to two decimal places per level. The leaderboard sums those rounded awards, with alphabetical ordering for ties. The verifier automatically earns points. Edit `pointsForRank` in `js/app.js` to change the curve.
+Each completed level awards `1 + 999 × e^(−0.05 × (rank − 1))` points, rounded to two decimal places per level. The one-point floor prevents long-list completions from rounding to zero; this updates the previous points curve and recalculates the leaderboard. The leaderboard sums those rounded awards, with alphabetical ordering for ties. The verifier automatically earns points. Edit `pointsForRank` in `js/app.js` to change the curve.
 
 Before accepting submissions, edit the Rules tab in `index.html` to set the actual minimum speed, allowed increments, accepted MegaHack/timewarp settings, evidence requirements, and submission process. The included guidance intentionally does not invent official policy.
 

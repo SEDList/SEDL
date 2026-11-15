@@ -74,9 +74,9 @@ async function loadFullLevelJSON() {
 }
 
 async function loadRecord() {
-  const match = /^#(0|[1-9]|1\d|2[0-5])\/(\d{10})\?(.+)$/.exec(location.hash);
+  const match = /^#(0|[1-9]\d*)\/(\d{10})\?(.+)$/.exec(location.hash);
   const token = match ? new URLSearchParams(match[3]).get('token') : null;
-  if (!match || !token) { $('#review-status').textContent = 'This review link is incomplete or invalid.'; return; }
+  if (!match || !Number.isSafeInteger(Number(match[1])) || !token) { $('#review-status').textContent = 'This review link is incomplete or invalid.'; return; }
   credentials = { rank: match[1], id: match[2], token };
   const params = new URLSearchParams({ rank: credentials.rank, id: credentials.id });
   try {

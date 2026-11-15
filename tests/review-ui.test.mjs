@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const script = await readFile(new URL('../js/review.js', import.meta.url), 'utf8');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
-async function review({ verifier = 'Someone else', records = [], fallback = false, clipboardFails = false, notificationSent = true } = {}) {
+async function review({ verifier = 'Someone else', records = [], fallback = false, clipboardFails = false, notificationSent = true, rank = '1' } = {}) {
   const elements = new Map(), requests = [], timers = [];
   function element(selector) {
     if (!elements.has(selector)) elements.set(selector, {
@@ -18,7 +18,7 @@ async function review({ verifier = 'Someone else', records = [], fallback = fals
   }
   const token = '12345678901234567890';
   const document = { querySelector: element, documentElement: { dataset: { theme: 'dark' } } };
-  const location = { hash: `#1/1234567890?token=${token}`, pathname: '/record/', search: '' };
+  const location = { hash: `#${rank}/1234567890?token=${token}`, pathname: '/record/', search: '' };
   let copied, replacement;
   const context = {
     document, location, history: { replaceState(_state, _unused, path) { replacement = path; } },
@@ -27,7 +27,7 @@ async function review({ verifier = 'Someone else', records = [], fallback = fals
     setTimeout(fn) { timers.push(fn); return timers.length; }, clearTimeout() {},
     fetch: async (url, options = {}) => {
       requests.push({ url: String(url), options });
-      if (String(url).startsWith('/api/record?')) return { ok: true, json: async () => ({ rank: '1', id: '1234567890', levelName: 'Trueffet', levelFile: 'trueffet.json', levelSlug: 'trueffet', speed: '1.3x', player: 'Player', video: 'https://youtu.be/khoORHh2M68' }) };
+      if (String(url).startsWith('/api/record?')) return { ok: true, json: async () => ({ rank, id: '1234567890', levelName: 'Trueffet', levelFile: 'trueffet.json', levelSlug: 'trueffet', speed: '1.3x', player: 'Player', video: 'https://youtu.be/khoORHh2M68' }) };
       if (String(url) === '/api/record') return { ok: true, json: async () => ({ success: true, notificationSent }) };
       if (String(url).startsWith('https://raw.')) {
         if (fallback && !String(url).includes('/data/levels/')) return { ok: false, status: 404 };
@@ -73,4 +73,11 @@ test('fallback folder, stale previews, and notification/clipboard failures are h
   await r.element('#accept-record').onclick();
   assert.match(r.element('#decision-status').textContent, /clipboard copy failed/);
   assert.match(r.element('#decision-status').textContent, /Discord notification failed/);
+});
+
+ test('review links support ranks beyond 25', async () => {
+  const r = await review({ rank: '101' });
+  assert.equal(r.element('#review-rank').textContent, '#101');
+  assert.equal(r.element('#accept-record').disabled, false);
+  assert.match(r.requests.find(item => item.url.startsWith('/api/record?')).url, /rank=101/);
 });

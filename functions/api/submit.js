@@ -15,7 +15,7 @@ export async function onRequestPost(context) {
   const video = youtubeURL(input.video);
   const rawInput = typeof input.rawFootage === 'string' ? input.rawFootage.trim() : '';
   const rawFootage = rawInput ? safeHttpURL(rawInput) : '';
-  if (!/^(?:[1-9]|1\d|2[0-5])$/.test(rank) || !player || player.length > 64 || /[\x00-\x1f\x7f]/.test(player) || !video || (rawInput && !rawFootage)) {
+  if (!/^[1-9]\d*$/.test(rank) || !Number.isSafeInteger(Number(rank)) || !player || player.length > 64 || /[\x00-\x1f\x7f]/.test(player) || !video || (rawInput && !rawFootage)) {
     return jsonResponse({ error: 'Enter a valid level, player name, YouTube video, and optional raw footage URL.' }, 400);
   }
 
