@@ -23,7 +23,8 @@ function levelSlug(record) {
 export async function onRequestGet({ request, env }) {
   if (!env.RECORDS_KV) return jsonResponse({ error: 'Review service is not configured.' }, 503);
   const params = new URL(request.url).searchParams;
-  const rank = params.get('rank') || '', id = params.get('id') || '', token = params.get('token') || '';
+  // Prefer the header to keep review tokens out of request URLs; keep old links/API clients working.
+  const rank = params.get('rank') || '', id = params.get('id') || '', token = request.headers.get('X-Review-Token') || params.get('token') || '';
   try {
     const record = await authorizedRecord(env.RECORDS_KV, rank, id, token);
     if (!record) return jsonResponse({ error: 'Unauthorized.' }, 401);

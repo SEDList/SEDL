@@ -12,8 +12,9 @@
   <script src="/js/review.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header"><div class="header-inner shell review-header"><a class="brand" href="/" aria-label="SEDL home"><img src="/assets/logo.svg" alt="SEDL — Sped-Up Demon List"></a><span class="review-header-label">STAFF REVIEW</span><button class="icon-button" id="review-theme" type="button" aria-label="Switch theme" title="Switch theme">◐</button></div></header>
-  <main class="review-main shell">
+  <main class="review-main shell" id="main" tabindex="-1">
     <a class="back-link" href="/">← Back to the list</a>
     <div class="review-heading"><p class="section-overline">SEDL / PRIVATE REVIEW</p><h1>Record submission<span class="accent-period">.</span></h1><p>Review the evidence before adding this record to the list.</p></div>
     <div id="review-status" class="review-message" role="status" aria-live="polite">Loading submission…</div>
@@ -37,7 +38,7 @@
         <div class="decision-actions"><button type="button" id="accept-record" class="decision-button accept-button" disabled>Accept Record</button><button type="button" id="reject-record" class="decision-button reject-button" disabled>Reject Record</button></div>
         <p id="decision-status" class="decision-status" role="status" aria-live="polite"></p>
       </div>
-      <div class="review-section"><div class="review-json-heading"><div><h3>Full level JSON</h3><p>Fetched from GitHub. Refresh before copying if the file may have changed.</p></div><div class="json-actions"><button type="button" class="copy-json" id="refresh-json" disabled>Refresh JSON</button><button type="button" class="copy-json" id="copy-json" disabled>Copy Full Level JSON</button><a id="edit-github" class="copy-json" target="_blank" rel="noopener noreferrer" hidden>Edit File on GitHub ↗</a></div></div><p id="json-status" class="review-hint" role="status" aria-live="polite">Loading level JSON…</p><pre><code id="record-json"></code></pre><p id="copy-status" class="copy-status" role="status" aria-live="polite"></p></div>
+      <div class="review-section"><div class="review-json-heading"><div><h3>Full level JSON</h3><p>Fetched from GitHub. Refresh after five minutes or whenever the file may have changed.</p></div><div class="json-actions"><button type="button" class="copy-json" id="refresh-json" disabled>Refresh JSON</button><button type="button" class="copy-json" id="copy-json" disabled>Copy Full Level JSON</button><a id="edit-github" class="copy-json" target="_blank" rel="noopener noreferrer" hidden>Edit File on GitHub ↗</a></div></div><p id="json-status" class="review-hint" role="status" aria-live="polite">Loading level JSON…</p><pre><code id="record-json"></code></pre><p id="copy-status" class="copy-status" role="status" aria-live="polite"></p></div>
     </section>
   </main>
   <footer class="site-footer shell"><div><strong>SEDL</strong><span>Sped-Up Extreme Demon List</span></div><span>Community-run. Not affiliated with RobTop Games.</span></footer>

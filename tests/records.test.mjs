@@ -34,6 +34,10 @@ test('real submission stores server-validated data and sends only a private revi
     assert.equal(stored.levelName, 'Trueffet'); assert.equal(stored.speed, '1.3x'); assert.equal(stored.token, parts.token);
     const ok = await lookup({ request: lookupRequest(parts), env }); const record = await ok.json();
     assert.equal(ok.status, 200); assert.equal(record.player, 'A Player'); assert(!('token' in record));
+    const headerRequest = new Request(`https://sedl.example/api/record?${new URLSearchParams({ rank: parts.rank, id: parts.id })}`, { headers: { 'X-Review-Token': parts.token } });
+    assert.equal((await lookup({ request: headerRequest, env })).status, 200);
+    const conflicting = new Request(lookupRequest(parts), { headers: { 'X-Review-Token': 'x'.repeat(20) } });
+    assert.equal((await lookup({ request: conflicting, env })).status, 401);
     const bad = await lookup({ request: lookupRequest({ ...parts, token: 'a'.repeat(20) }), env }); assert.equal(bad.status, 401);
     const missing = await lookup({ request: lookupRequest({ ...parts, id: '9999999999' }), env }); assert.equal(missing.status, 401);
   } finally { globalThis.fetch = original; }

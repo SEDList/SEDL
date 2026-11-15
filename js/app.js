@@ -39,14 +39,22 @@ $('#theme-toggle').addEventListener('click', () => setTheme(document.documentEle
 setTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
 
 function navigate() {
-  const tab = location.hash.slice(1).toLowerCase();
+  const hash = location.hash.slice(1);
+  const levelMatch = /^level\/([\w-]+)$/i.exec(hash);
+  const tab = hash.toLowerCase();
   const current = ['list', 'leaderboard', 'rules'].includes(tab) ? tab : 'list';
   document.querySelectorAll('.view').forEach(view => { view.hidden = view.id !== `view-${current}`; });
   document.querySelectorAll('.nav-link').forEach(link => {
     const active = link.dataset.tab === current; link.classList.toggle('active', active);
     if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
   });
+  if (levelMatch && state.levels.length) {
+    const level = state.levels.find(item => item.filename.replace(/\.json$/i, '').toLowerCase() === levelMatch[1].toLowerCase());
+    if (level) { state.selected = level.rank; $('#search').value = ''; renderList(); }
+    else showToast('That level is not in the current top 25.');
+  }
 }
+function levelHash(level) { return `#level/${level.filename.replace(/\.json$/i, '')}`; }
 window.addEventListener('hashchange', navigate); navigate();
 
 function buildLeaderboard() {
@@ -82,7 +90,7 @@ function openPlayer(index) {
 }
 $('#leaderboard-body').addEventListener('click', event => { const row = event.target.closest('[data-player]'); if (row) openPlayer(Number(row.dataset.player)); });
 
-$('#player-completions').addEventListener('click', event => { const button = event.target.closest('[data-level-rank]'); if (!button) return; state.selected = Number(button.dataset.levelRank); $('#search').value = ''; $('#player-dialog').close(); location.hash = 'list'; navigate(); renderList(); if (window.matchMedia('(max-width: 750px)').matches) $('#level-detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#player-completions').addEventListener('click', event => { const button = event.target.closest('[data-level-rank]'); if (!button) return; state.selected = Number(button.dataset.levelRank); $('#search').value = ''; $('#player-dialog').close(); const level = state.levels.find(item => item.rank === state.selected); location.hash = level ? levelHash(level) : '#list'; navigate(); renderList(); if (window.matchMedia('(max-width: 750px)').matches) $('#level-detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('#close-dialog').addEventListener('click', () => $('#player-dialog').close());
 $('#player-dialog').addEventListener('click', event => { if (event.target === $('#player-dialog')) $('#player-dialog').close(); });
 
@@ -93,7 +101,11 @@ function filteredLevels() {
 function renderList() {
   const filtered = filteredLevels();
   $('#sidebar-count').textContent = filtered.length;
+  const previousSelection = state.selected;
   if (!filtered.some(level => level.rank === state.selected)) state.selected = filtered.length ? filtered[0].rank : null;
+  if ($('#search').value && state.selected && state.selected !== previousSelection) {
+    history.replaceState(null, '', levelHash(filtered.find(level => level.rank === state.selected)));
+  }
   $('#level-list').innerHTML = filtered.length ? filtered.map(level => {
     const video = youtubeId(level.youtube);
     const thumb = video ? `<img src="https://i.ytimg.com/vi/${video}/default.jpg" loading="lazy" alt="">` : '';
@@ -111,16 +123,22 @@ function renderDetail() {
   const seenRecords = new Set();
   const records = [{ player: level.verifier, video: level.youtube, verifier: true }, ...level.records].filter(record => { const key = record.player.trim().toLocaleLowerCase(); if (!key || seenRecords.has(key)) return false; seenRecords.add(key); return true; });
   const recordRows = records.filter(record => record.player).map(record => { const link = safeURL(record.video) || (youtubeId(record.video) ? `https://www.youtube.com/watch?v=${youtubeId(record.video)}` : ''); return `<tr><td>${escapeHTML(record.player)}</td><td>${record.verifier ? 'Verifier' : '100%'}</td><td>${link ? `<a class="record-link" href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">Watch ↗</a>` : '<span class="detail-label">—</span>'}</td></tr>`; }).join('');
-  $('#level-detail').innerHTML = `<div class="detail-topline"><span>LEVEL OVERVIEW</span><span>THE LIST / ${String(level.rank).padStart(2, '0')}</span></div><div class="detail-head"><div class="detail-heading-group"><span class="detail-rank-large">${rankLabel(level.rank)}</span><div><div class="detail-rank">RANKED LEVEL</div><h3 class="detail-title">${escapeHTML(level.name)} <span class="speed-badge">${escapeHTML(level.speed)}</span></h3><div class="detail-subtitle">Created by ${escapeHTML(level.creator)}</div></div></div><div class="points-box"><span class="detail-label">POINTS</span><strong>${formatPoints(pointsForRank(level.rank))}</strong><span class="points-caption">for a completion</span></div></div><div class="detail-body"><div class="video-wrap">${video}</div><div class="video-caption"><span><span class="caption-dot"></span> VERIFICATION VIDEO</span>${id ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener noreferrer">WATCH ON YOUTUBE ↗</a>` : '<span>NOT PROVIDED</span>'}</div><div class="details-grid"><div class="detail-stat"><span class="detail-label">CREATOR</span><span class="detail-value">${escapeHTML(level.creator)}</span></div><div class="detail-stat"><span class="detail-label">VERIFIER</span><span class="detail-value">${escapeHTML(level.verifier || 'Not provided')}</span></div><div class="detail-stat"><span class="detail-label">LEVEL ID</span><span class="detail-value">${escapeHTML(level.levelId || 'Not provided')} ${level.levelId ? '<button class="copy-button" type="button" aria-label="Copy level ID">⧉ Copy</button>' : ''}</span></div></div><div class="records-header"><div><span class="detail-label">THE PLAYERS</span><h3>Verified records <span class="record-count">${records.length}</span></h3></div><span>100% COMPLETIONS</span></div><div class="table-scroll"><table class="records-table"><thead><tr><th>PLAYER</th><th>PROGRESS</th><th>FOOTAGE</th></tr></thead><tbody>${recordRows || '<tr><td colspan="3">No records yet.</td></tr>'}</tbody></table></div></div>`;
+  $('#level-detail').innerHTML = `<div class="detail-topline"><span>LEVEL OVERVIEW</span><div class="detail-top-actions"><button type="button" class="share-level" aria-label="Copy link to ${escapeHTML(level.name)}">↗ Share level</button><span>THE LIST / ${String(level.rank).padStart(2, '0')}</span></div></div><div class="detail-head"><div class="detail-heading-group"><span class="detail-rank-large">${rankLabel(level.rank)}</span><div><div class="detail-rank">RANKED LEVEL</div><h3 class="detail-title">${escapeHTML(level.name)} <span class="speed-badge">${escapeHTML(level.speed)}</span></h3><div class="detail-subtitle">Created by ${escapeHTML(level.creator)}</div></div></div><div class="points-box"><span class="detail-label">POINTS</span><strong>${formatPoints(pointsForRank(level.rank))}</strong><span class="points-caption">for a completion</span></div></div><div class="detail-body"><div class="video-wrap">${video}</div><div class="video-caption"><span><span class="caption-dot"></span> VERIFICATION VIDEO</span>${id ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener noreferrer">WATCH ON YOUTUBE ↗</a>` : '<span>NOT PROVIDED</span>'}</div><div class="details-grid"><div class="detail-stat"><span class="detail-label">CREATOR</span><span class="detail-value">${escapeHTML(level.creator)}</span></div><div class="detail-stat"><span class="detail-label">VERIFIER</span><span class="detail-value">${escapeHTML(level.verifier || 'Not provided')}</span></div><div class="detail-stat"><span class="detail-label">LEVEL ID</span><span class="detail-value">${escapeHTML(level.levelId || 'Not provided')} ${level.levelId ? '<button class="copy-button" type="button" aria-label="Copy level ID">⧉ Copy</button>' : ''}</span></div></div><div class="records-header"><div><span class="detail-label">THE PLAYERS</span><h3>Verified records <span class="record-count">${records.length}</span></h3></div><button class="submit-from-level" type="button">Submit a record ↗</button></div><div class="table-scroll"><table class="records-table"><thead><tr><th>PLAYER</th><th>PROGRESS</th><th>FOOTAGE</th></tr></thead><tbody>${recordRows || '<tr><td colspan="3">No records yet.</td></tr>'}</tbody></table></div></div>`;
 }
-$('#level-list').addEventListener('click', event => { const button = event.target.closest('[data-rank]'); if (!button) return; state.selected = Number(button.dataset.rank); document.querySelectorAll('.level-item').forEach(item => { const active = item === button; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'true'); else item.removeAttribute('aria-current'); }); renderDetail(); if (window.matchMedia('(max-width: 750px)').matches) $('#level-detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#level-list').addEventListener('click', event => { const button = event.target.closest('[data-rank]'); if (!button) return; state.selected = Number(button.dataset.rank); const level = state.levels.find(item => item.rank === state.selected); if (level) history.replaceState(null, '', levelHash(level)); document.querySelectorAll('.level-item').forEach(item => { const active = item === button; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'true'); else item.removeAttribute('aria-current'); }); renderDetail(); if (window.matchMedia('(max-width: 750px)').matches) $('#level-detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('#search').addEventListener('input', renderList);
+$('#level-list').addEventListener('click', event => { if (event.target.closest('.retry-load')) { event.target.disabled = true; event.target.textContent = 'Loading…'; loadLevels(); } });
 document.addEventListener('keydown', event => { if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && !$('#view-list').hidden && !$('#player-dialog').open) { event.preventDefault(); $('#search').focus(); } });
 $('#level-detail').addEventListener('click', async event => {
-  if (!event.target.closest('.copy-button')) return;
+  if (event.target.closest('.submit-from-level')) { $('#open-submit').click(); return; }
+  const copyId = event.target.closest('.copy-button');
+  const share = event.target.closest('.share-level');
+  if (!copyId && !share) return;
   const level = state.levels.find(item => item.rank === state.selected); if (!level) return;
-  try { await navigator.clipboard.writeText(String(level.levelId)); showToast('Level ID copied to clipboard'); }
-  catch (_) { showToast('Could not copy. Please copy the ID manually.'); }
+  const url = new URL(location.href); url.search = ''; url.hash = levelHash(level);
+  if (share) history.replaceState(null, '', levelHash(level));
+  try { await navigator.clipboard.writeText(share ? url.href : String(level.levelId)); showToast(share ? 'Level link copied to clipboard' : 'Level ID copied to clipboard'); }
+  catch (_) { showToast(share ? 'Could not copy. You can copy the URL from your address bar.' : 'Could not copy. Please copy the ID manually.'); }
 });
 
 function populateSubmitLevels() {
@@ -144,10 +162,13 @@ $('#submit-form').addEventListener('submit', async event => {
   const status = $('#submit-status');
   button.disabled = true; button.firstChild.textContent = 'Sending… '; status.textContent = '';
   try {
-    const response = await fetch('/api/submit', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rank: level.rank, levelName: level.name, speed: level.speed, levelFile: level.filename, player: $('#submit-player').value.trim(), video: $('#submit-video').value.trim(), rawFootage: $('#submit-raw').value.trim() })
-    });
+    let response;
+    try {
+      response = await fetch('/api/submit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rank: level.rank, levelName: level.name, speed: level.speed, levelFile: level.filename, player: $('#submit-player').value.trim(), video: $('#submit-video').value.trim(), rawFootage: $('#submit-raw').value.trim() })
+      });
+    } catch (_) { throw new Error('Could not confirm whether your submission was sent. Check with staff before retrying.'); }
     let result; try { result = await response.json(); } catch (_) { throw new Error('The submission service is unavailable. Please try again later.'); }
     if (!response.ok || !result.success) throw new Error(result.error || 'Could not send your submission. Please try again.');
     $('#submit-form').reset();
@@ -180,12 +201,12 @@ async function loadLevels() {
     state.levels = results; state.selected = results[0]?.rank || null;
     $('#demo-notice').hidden = !results.some(level => level.demo);
     $('#level-count').textContent = String(results.length);
-    populateSubmitLevels(); buildLeaderboard(); $('#overview-levels').textContent = String(results.length).padStart(2, '0'); $('#overview-players').textContent = String(state.players.length).padStart(2, '0'); renderLeaderboard(); renderList();
+    navigate(); populateSubmitLevels(); buildLeaderboard(); $('#overview-levels').textContent = String(results.length).padStart(2, '0'); $('#overview-players').textContent = String(state.players.length).padStart(2, '0'); renderLeaderboard(); renderList();
   } catch (error) {
     console.error('Unable to load list:', error);
     $('#demo-notice').hidden = true;
     $('#submit-level').innerHTML = '<option value="">Levels unavailable</option>';
-    $('#level-list').innerHTML = '<div class="empty-state">Could not load the list. Check the data files and try again.</div>';
+    $('#level-list').innerHTML = '<div class="empty-state">Could not load the list.<br><button type="button" class="retry-load">Try again</button></div>';
     $('#level-detail').innerHTML = '<div class="empty-state empty-detail">List data unavailable.</div>';
     $('#leaderboard-body').innerHTML = '<tr><td colspan="5" class="empty-state">Could not load leaderboard data.</td></tr>';
   }

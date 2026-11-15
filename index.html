@@ -12,6 +12,7 @@
   <script src="js/app.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="header-inner shell">
       <a class="brand" href="#list" aria-label="SEDL home"><img src="assets/logo.svg" alt="SEDL — Sped-Up Demon List"></a>
@@ -24,7 +25,8 @@
       <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme"><svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42m0-14.14-1.42 1.42M6.35 17.65l-1.42 1.42"/></svg><svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5 8.5 8.5 0 1 0 20.5 14.4Z"/></svg></button>
     </div>
   </header>
-  <main class="shell">
+  <main class="shell" id="main" tabindex="-1">
+    <noscript><div class="demo-notice">JavaScript is required to load the rankings and submit records.</div></noscript>
     <section class="intro">
       <div class="intro-copy">
         <p class="eyebrow"><span class="status-dot"></span> AN INDEPENDENT GEOMETRY DASH LIST</p>
@@ -76,7 +78,7 @@
       <input id="submit-video" name="video" type="url" maxlength="500" required placeholder="https://youtube.com/watch?v=...">
       <label for="submit-raw">Raw footage URL <small>OPTIONAL</small></label>
       <input id="submit-raw" name="rawFootage" type="url" maxlength="500" placeholder="https://...">
-      <p class="form-note">Please make sure your links are accessible to the review team.</p>
+      <p class="form-note">Your links are shared with the staff review team. Make sure they are accessible. A submission is not added to the list until staff review it.</p>
       <p id="submit-status" class="submit-status" role="status" aria-live="polite"></p>
       <button class="submit-action" id="submit-action" type="submit" disabled>Send submission <span aria-hidden="true">↗</span></button>
     </form>
